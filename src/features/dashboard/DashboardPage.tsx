@@ -34,8 +34,6 @@ import {
     Tooltip as RechartsTooltip,
     Legend,
     ResponsiveContainer,
-    BarChart,
-    Bar,
     PieChart,
     Pie,
     Cell
@@ -256,13 +254,13 @@ export default function DashboardPage() {
                                                 cx="50%"
                                                 cy="50%"
                                                 labelLine={false}
-                                                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                                                // label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
                                                 outerRadius={100}
                                                 fill="#8884d8"
                                                 dataKey="amount"
                                                 nameKey="method"
                                             >
-                                                {(cashFlow?.paymentMethods || []).map((entry, index) => (
+                                                {(cashFlow?.paymentMethods || []).map((_, index) => (
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
                                             </Pie>
@@ -380,8 +378,8 @@ export default function DashboardPage() {
                                                 </td>
                                                 <td className="p-4 align-middle">
                                                     <span className={`px-2 py-1 rounded text-xs font-medium ${log.action === 'DELETE' ? 'bg-red-100 text-red-800' :
-                                                            log.action === 'REVERSE' ? 'bg-amber-100 text-amber-800' :
-                                                                'bg-gray-100 text-gray-800'
+                                                        log.action === 'REVERSE' ? 'bg-amber-100 text-amber-800' :
+                                                            'bg-gray-100 text-gray-800'
                                                         }`}>
                                                         {log.action === 'DELETE' ? 'حذف' : log.action === 'REVERSE' ? 'عكس / استرجاع' : log.action}
                                                     </span>
