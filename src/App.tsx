@@ -8,6 +8,7 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import UsersPage from './features/users/UsersPage';
 import { UserRole } from './features/auth/authService';
 import DashboardPage from './features/dashboard/DashboardPage';
+import ProductsPage from './features/products/ProductsPage';
 import { useAuthStore } from './store/useAuthStore';
 
 const IndexRouteHelper = () => {
@@ -28,6 +29,7 @@ function App() {
           <Route path="/" element={<DashboardLayout />}>
             <Route index element={<IndexRouteHelper />} />
             <Route path="categories" element={<CategoriesPage />} />
+            <Route path="products" element={<ProductsPage />} />
             <Route path="customers" element={<CustomersPage />} />
             <Route path="customers/:id" element={<CustomerDetailsPage />} />
 

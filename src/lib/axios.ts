@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an instance of axios
 const api = axios.create({
-    baseURL: 'http://localhost:3000/api/v1', // Should be in .env in production
+    baseURL: 'https://backend-fggt.onrender.com/api/v1', // Should be in .env in production
     headers: {
         'Content-Type': 'application/json',
     },
@@ -45,7 +45,7 @@ api.interceptors.response.use(
                 // Importing api might cause circular issues if we use it inside its own interceptor definitions depending on how it's structured.
                 // But generally safe if we don't recurse. 
                 // However, easier to just use fetch or a separate axios instance or just import axios.
-                const response = await axios.post('http://localhost:3000/api/v1/auth/refresh', {
+                const response = await axios.post('https://backend-fggt.onrender.com/api/v1/auth/refresh', {
                     refreshToken
                 });
 
