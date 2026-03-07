@@ -8,12 +8,14 @@ interface ProductsState {
     error: string | null;
     meta: ProductsResponse['data']['pagination'] | null;
     isDeleted: boolean;
+    searchQuery: string;
 
     fetchProducts: (page?: number, limit?: number, search?: string) => Promise<void>;
     addProduct: (product: Product) => Promise<void>;
     updateProduct: (id: number, data: Partial<Product>) => Promise<void>;
     deleteProduct: (id: number) => Promise<void>;
     setFilter: (isDeleted: boolean) => void;
+    setSearchQuery: (query: string) => void;
 
     currentProduct: Product | null;
     productToEdit: Product | null;
@@ -27,6 +29,7 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
     error: null,
     meta: null,
     isDeleted: false,
+    searchQuery: '',
     currentProduct: null,
     productToEdit: null,
 
@@ -35,13 +38,19 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
         get().fetchProducts(1);
     },
 
+    setSearchQuery: (query: string) => {
+        set({ searchQuery: query });
+        get().fetchProducts(1, 10, query);
+    },
+
     setProductToEdit: (product) => set({ productToEdit: product }),
 
-    fetchProducts: async (page = 1, limit = 10, search = '') => {
-        const { isDeleted } = get();
+    fetchProducts: async (page = 1, limit = 10, search) => {
+        const { isDeleted, searchQuery } = get();
+        const currentSearch = search !== undefined ? search : searchQuery;
         set({ isLoading: true, error: null });
         try {
-            const response = await productsService.getAll(page, limit, search, isDeleted);
+            const response = await productsService.getAll(page, limit, currentSearch, isDeleted);
             set({
                 products: response.data.products,
                 meta: response.data.pagination,

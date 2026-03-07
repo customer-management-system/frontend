@@ -8,6 +8,7 @@ interface CustomersState {
     error: string | null;
     meta: CustomersResponse['data']['pagination'] | null;
     isDeleted: boolean;
+    searchQuery: string;
 
     fetchCustomers: (page?: number, limit?: number, search?: string) => Promise<void>;
     addCustomer: (customer: Customer) => Promise<void>;
@@ -15,6 +16,7 @@ interface CustomersState {
     deleteCustomer: (id: number) => Promise<void>;
     restoreCustomer: (id: number) => Promise<void>;
     setFilter: (isDeleted: boolean) => void;
+    setSearchQuery: (query: string) => void;
 
     // Details & History
     currentCustomer: Customer | null;
@@ -35,6 +37,7 @@ export const useCustomersStore = create<CustomersState>((set, get) => ({
     error: null,
     meta: null,
     isDeleted: false,
+    searchQuery: '',
     currentCustomer: null,
     financialHistory: null,
     deletedHistory: null,
@@ -46,13 +49,19 @@ export const useCustomersStore = create<CustomersState>((set, get) => ({
         get().fetchCustomers(1);
     },
 
+    setSearchQuery: (query) => {
+        set({ searchQuery: query });
+        get().fetchCustomers(1, 10, query);
+    },
+
     setCustomerToEdit: (customer) => set({ customerToEdit: customer }),
 
-    fetchCustomers: async (page = 1, limit = 10, search = '') => {
-        const { isDeleted } = get();
+    fetchCustomers: async (page = 1, limit = 10, search) => {
+        const { isDeleted, searchQuery } = get();
+        const currentSearch = search !== undefined ? search : searchQuery;
         set({ isLoading: true, error: null });
         try {
-            const response = await customersService.getAll(page, limit, search, isDeleted);
+            const response = await customersService.getAll(page, limit, currentSearch, isDeleted);
             // Check if response has data property, or is the data itself. 
             // Based on service it returns response.data.  
             // If the API returns { data: [...], meta: ... } then:

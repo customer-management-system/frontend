@@ -2,18 +2,29 @@ import { DataTable } from "@/components/shared/DataTable";
 import { columns } from "./columns";
 import { useCustomersStore } from "./store";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronRight, ChevronLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, ChevronRight, ChevronLeft, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CustomerForm } from "./CustomerForm";
 import { useEffect, useState } from "react";
 
 export default function CustomersPage() {
-    const { customers, fetchCustomers, isDeleted, setFilter, customerToEdit, setCustomerToEdit, meta } = useCustomersStore();
+    const { customers, fetchCustomers, isDeleted, setFilter, customerToEdit, setCustomerToEdit, meta, searchQuery, setSearchQuery } = useCustomersStore();
     const [open, setOpen] = useState(false);
+    const [localSearch, setLocalSearch] = useState(searchQuery);
 
     useEffect(() => {
         fetchCustomers();
     }, [fetchCustomers]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (localSearch !== searchQuery) {
+                setSearchQuery(localSearch);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [localSearch, searchQuery, setSearchQuery]);
 
     return (
         <div className="space-y-6">
@@ -61,28 +72,40 @@ export default function CustomersPage() {
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <div className="flex border-b mb-6">
-                    <button
-                        onClick={() => setFilter(false)}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${!isDeleted
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                    >
-                        نشط
-                    </button>
-                    <button
-                        onClick={() => setFilter(true)}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${isDeleted
-                            ? 'border-red-500 text-red-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                    >
-                        محذوف
-                    </button>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div className="flex border-b">
+                        <button
+                            onClick={() => setFilter(false)}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${!isDeleted
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            نشط
+                        </button>
+                        <button
+                            onClick={() => setFilter(true)}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${isDeleted
+                                ? 'border-red-500 text-red-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            محذوف
+                        </button>
+                    </div>
+
+                    <div className="relative w-full sm:w-72">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Input
+                            placeholder="بحث عن عميل..."
+                            value={localSearch}
+                            onChange={(e) => setLocalSearch(e.target.value)}
+                            className="pl-4 pr-10"
+                        />
+                    </div>
                 </div>
 
-                <DataTable columns={columns} data={customers} searchKey="name" enablePagination={false} />
+                <DataTable columns={columns} data={customers} enablePagination={false} />
 
                 {/* Server-side pagination controls */}
                 {meta && meta.totalPages > 1 && (
