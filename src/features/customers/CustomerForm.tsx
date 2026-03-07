@@ -23,7 +23,6 @@ export function CustomerForm({ onSuccess, initialData }: CustomerFormProps) {
         defaultValues: initialData || {
             name: "",
             phone: "",
-            email: "",
             address: "",
         },
     });
@@ -55,11 +54,11 @@ export function CustomerForm({ onSuccess, initialData }: CustomerFormProps) {
                 {errors.phone && <p className="text-red-500 text-xs">{errors.phone.message}</p>}
             </div>
 
-            <div className="grid gap-2">
+            {/* <div className="grid gap-2">
                 <label className="text-sm font-medium">البريد الإلكتروني (اختياري)</label>
                 <Input {...register("email")} placeholder="example@domain.com" className="text-left" dir="ltr" />
                 {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
-            </div>
+            </div> */}
 
             <div className="grid gap-2">
                 <label className="text-sm font-medium">العنوان (اختياري)</label>

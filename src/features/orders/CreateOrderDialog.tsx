@@ -461,7 +461,7 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                                         name="payment.method"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <Select onValueChange={field.onChange} value={field.value}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder="طريقة الدفع" />
@@ -492,10 +492,36 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                                             </FormItem>
                                         )}
                                     />
+                                    <FormField
+                                        control={form.control}
+                                        name="payment.notes"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="ملاحظات الدفع (اختياري)"
+                                                        {...field}
+                                                        value={field.value || ""}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
                             </div>
 
-                            <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
+                            <div className="bg-muted p-4 rounded-lg space-y-2 text-sm h-fit">
+                                {items.length > 0 && (
+                                    <div className="border-b border-gray-300 pb-3 mb-3 space-y-2">
+                                        <div className="font-semibold mb-1 text-gray-700">المنتجات:</div>
+                                        {items.map((item, idx) => (
+                                            <div key={idx} className="flex justify-between items-center text-muted-foreground text-xs">
+                                                <span>{item.product_name} <span className="text-gray-400 mx-1">x{item.quantity}</span></span>
+                                                <span className="font-medium">{(item.quantity * item.unit_price).toFixed(2)} <span className="text-[10px]">جنية</span></span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span>المجموع الفرعي:</span>
                                     <span>{subtotal.toFixed(2)} جنية</span>

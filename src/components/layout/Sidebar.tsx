@@ -2,6 +2,7 @@ import {
     LayoutDashboard,
     Package,
     Users,
+    DollarSign,
     LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,7 @@ const sidebarItems = [
     { icon: Package, label: 'المنتجات', href: '/products', roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF] },
     { icon: Users, label: 'إدارة المستخدمين', href: '/users', roles: [UserRole.ADMIN] }, // New item for Admin
     { icon: Users, label: 'العملاء', href: '/customers', roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF] },
+    { icon: DollarSign, label: 'الماليات', href: '/financials', roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF] },
 ];
 
 export function Sidebar() {

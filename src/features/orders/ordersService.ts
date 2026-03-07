@@ -16,6 +16,11 @@ export const ordersService = {
         return response.data;
     },
 
+    extraCharge: async (data: { customer_id: number; amount: number }) => {
+        const response = await axios.post(`${API_URL}/orders/extra-charge`, data, { headers: getHeaders() });
+        return response.data;
+    },
+
     getProducts: async (page = 1, limit = 20, search = "") => {
         const response = await axios.get<ProductResponse>(`${API_URL}/products`, {
             headers: getHeaders(),

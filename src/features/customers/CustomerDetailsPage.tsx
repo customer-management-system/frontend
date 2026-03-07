@@ -7,6 +7,7 @@ import { ArrowRight, Wallet, ShoppingCart, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { CreateOrderDialog } from "../orders/CreateOrderDialog";
+import { ExtraChargeDialog } from "../orders/ExtraChargeDialog";
 import { Invoice } from "../orders/Invoice";
 import { MakePaymentDialog } from "../payments/MakePaymentDialog";
 import { UpdatePaymentDialog } from "../payments/UpdatePaymentDialog";
@@ -142,6 +143,16 @@ export default function CustomerDetailsPage() {
                 </Button>
                 <h1 className="text-2xl font-bold">{currentCustomer.name}</h1>
                 <div className="mr-auto flex gap-2">
+                    <ExtraChargeDialog
+                        customerId={parseInt(id!)}
+                        onSuccess={() => {
+                            if (id) {
+                                const customerId = parseInt(id);
+                                fetchCustomerDetails(customerId);
+                                fetchFinancialHistory(customerId);
+                            }
+                        }}
+                    />
                     <MakePaymentDialog
                         customerId={parseInt(id!)}
                         onSuccess={() => {

@@ -9,6 +9,7 @@ import UsersPage from './features/users/UsersPage';
 import { UserRole } from './features/auth/authService';
 import DashboardPage from './features/dashboard/DashboardPage';
 import ProductsPage from './features/products/ProductsPage';
+import FinancialsPage from './features/financials/FinancialsPage';
 import { useAuthStore } from './store/useAuthStore';
 
 const IndexRouteHelper = () => {
@@ -32,6 +33,7 @@ function App() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="customers" element={<CustomersPage />} />
             <Route path="customers/:id" element={<CustomerDetailsPage />} />
+            <Route path="financials" element={<FinancialsPage />} />
 
             {/* Admin Only Routes */}
             <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
