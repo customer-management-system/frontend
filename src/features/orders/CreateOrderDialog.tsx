@@ -47,8 +47,10 @@ import { createOrderSchema, PaymentMethod, DiscountType, Product, CreateOrderReq
 import { ordersService } from "./ordersService";
 import { customersService } from "../customers/customersService";
 import { PricingHistoryItem } from "../customers/schema";
+import { toast } from "react-toastify";
 import { Invoice } from "./Invoice";
 import { PrintOverlay } from "@/components/shared/PrintOverlay";
+import { triggerPrint } from "@/lib/printManager";
 
 interface CreateOrderDialogProps {
     customerId: number;
@@ -172,8 +174,14 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                 setCreatedOrder(response.data);
                 // Don't close immediately, show success view
             }
-        } catch (error) {
-            console.error("Failed to create order", error);
+        } catch (error: any) {
+            const errBody = error.response?.data;
+            const message =
+                errBody?.error?.message ||
+                errBody?.message ||
+                (Array.isArray(errBody?.error?.details) ? 'خطأ في البيانات المرسلة' : null) ||
+                'فشل إنشاء الطلب';
+            toast.error(typeof message === 'string' ? message : 'فشل إنشاء الطلب');
         }
     };
 
@@ -204,13 +212,7 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
     };
 
     const handlePrint = () => {
-        document.body.classList.add('printing-invoice');
-        setTimeout(() => {
-            window.print();
-            setTimeout(() => {
-                document.body.classList.remove('printing-invoice');
-            }, 500);
-        }, 50);
+        triggerPrint({ printClass: 'printing-invoice' });
     };
 
     const handleReset = () => {

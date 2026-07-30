@@ -10,6 +10,9 @@ import { UserRole } from './features/auth/authService';
 import DashboardPage from './features/dashboard/DashboardPage';
 import ProductsPage from './features/products/ProductsPage';
 import FinancialsPage from './features/financials/FinancialsPage';
+import AuditTrailPage from './features/audit/AuditTrailPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
+import NotFoundPage from './pages/NotFoundPage';
 import { useAuthStore } from './store/useAuthStore';
 
 const IndexRouteHelper = () => {
@@ -25,6 +28,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<DashboardLayout />}>
@@ -33,20 +37,20 @@ function App() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="customers" element={<CustomersPage />} />
             <Route path="customers/:id" element={<CustomerDetailsPage />} />
-            <Route path="financials" element={<FinancialsPage />} />
 
-            {/* Admin Only Routes */}
-            <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
-              <Route path="users" element={<UsersPage />} />
-              {/* Redirect old route if anyone tries it */}
-              <Route path="register-user" element={<Navigate to="/users" replace />} />
+            <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]} />}>
+              <Route path="audit-trail" element={<AuditTrailPage />} />
             </Route>
 
-            {/* Add other routes here */}
+            <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
+              <Route path="users" element={<UsersPage />} />
+              <Route path="financials" element={<FinancialsPage />} />
+              <Route path="register-user" element={<Navigate to="/users" replace />} />
+            </Route>
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
   );

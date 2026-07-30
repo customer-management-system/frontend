@@ -32,6 +32,9 @@ import { DateRange } from "react-day-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/currency";
+import { triggerPrint } from "@/lib/printManager";
+import { toast } from "react-toastify";
 
 export default function CustomerDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -54,17 +57,30 @@ export default function CustomerDetailsPage() {
     const [paymentToPrint, setPaymentToPrint] = useState<PaymentData | null>(null);
     const [isPrintingPayment, setIsPrintingPayment] = useState<number | null>(null);
     const [isPrintingStatement, setIsPrintingStatement] = useState(false);
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+    const refreshCustomerData = () => {
+        if (id) {
+            const customerId = parseInt(id);
+            fetchCustomerDetails(customerId);
+            fetchFinancialHistory(customerId);
+            fetchDeletedHistory(customerId);
+        }
+    };
+
+    const computePreviousBalance = (order: OrderData): number => {
+        if (order.currentTotalBalance != null) {
+            return order.currentTotalBalance - Number(order.balance);
+        }
+        return 0;
+    };
 
     const handlePrintStatement = () => {
         setIsPrintingStatement(true);
-        setTimeout(() => {
-            document.body.classList.add('printing-statement');
-            window.print();
-            setTimeout(() => {
-                document.body.classList.remove('printing-statement');
-                setIsPrintingStatement(false);
-            }, 500);
-        }, 100);
+        triggerPrint({
+            printClass: 'printing-statement',
+            onAfterPrint: () => setIsPrintingStatement(false),
+        });
     };
 
     const handlePrintOrder = async (orderId: number) => {
@@ -72,19 +88,20 @@ export default function CustomerDetailsPage() {
             setIsPrintingInfo(orderId);
             const response = await ordersService.getById(orderId);
             if (response.success) {
-                setOrderToPrint(response.data);
-                setTimeout(() => {
-                    document.body.classList.add('printing-invoice');
-                    window.print();
-                    setTimeout(() => {
-                        document.body.classList.remove('printing-invoice');
-                        setOrderToPrint(null);
-                        setIsPrintingInfo(null);
-                    }, 500);
-                }, 100);
+                const order = response.data as OrderData;
+                setOrderToPrint(order);
+                requestAnimationFrame(() => {
+                    triggerPrint({
+                        printClass: 'printing-invoice',
+                        onAfterPrint: () => {
+                            setOrderToPrint(null);
+                            setIsPrintingInfo(null);
+                        },
+                    });
+                });
             }
-        } catch (e) {
-            console.error(e);
+        } catch {
+            toast.error('فشل تحميل بيانات الفاتورة');
             setIsPrintingInfo(null);
         }
     };
@@ -95,23 +112,35 @@ export default function CustomerDetailsPage() {
             const response = await paymentsService.getById(paymentId);
             if (response.success) {
                 setPaymentToPrint(response.data);
-                setTimeout(() => {
-                    document.body.classList.add('printing-invoice');
-                    window.print();
-                    setTimeout(() => {
-                        document.body.classList.remove('printing-invoice');
-                        setPaymentToPrint(null);
-                        setIsPrintingPayment(null);
-                    }, 500);
-                }, 100);
+                requestAnimationFrame(() => {
+                    triggerPrint({
+                        printClass: 'printing-invoice',
+                        onAfterPrint: () => {
+                            setPaymentToPrint(null);
+                            setIsPrintingPayment(null);
+                        },
+                    });
+                });
             }
-        } catch (e) {
-            console.error(e);
+        } catch {
+            toast.error('فشل تحميل بيانات الإيصال');
             setIsPrintingPayment(null);
         }
     };
 
-    console.log({ currentCustomer });
+    const runAction = async (actionKey: string, action: () => Promise<void>, successMessage: string) => {
+        if (actionLoading) return;
+        setActionLoading(actionKey);
+        try {
+            await action();
+            refreshCustomerData();
+            toast.success(successMessage);
+        } catch {
+            toast.error('حدث خطأ أثناء تنفيذ العملية');
+        } finally {
+            setActionLoading(null);
+        }
+    };
 
     useEffect(() => {
         if (id) {
@@ -200,7 +229,7 @@ export default function CustomerDetailsPage() {
                         <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{financialHistory?.summary.totalOrders || 0} جنية</div>
+                        <div className="text-2xl font-bold">{formatCurrency(financialHistory?.summary.totalOrders || 0)}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -209,7 +238,7 @@ export default function CustomerDetailsPage() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-green-600">{financialHistory?.summary.totalPaid || 0} جنية</div>
+                        <div className="text-2xl font-bold text-green-600">{formatCurrency(financialHistory?.summary.totalPaid || 0)}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -218,7 +247,7 @@ export default function CustomerDetailsPage() {
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-red-600">{financialHistory?.summary.currentBalance || 0} جنية</div>
+                        <div className="text-2xl font-bold text-red-600">{formatCurrency(financialHistory?.summary.currentBalance || 0)}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -375,9 +404,9 @@ export default function CustomerDetailsPage() {
                                                 <td className={`p-4 align-middle font-medium ${record.status === 'deleted' || record.status === 'reversed' ? 'text-gray-400 line-through' :
                                                     record.type === 'PAYMENT' ? 'text-green-600' : 'text-blue-600'
                                                     }`}>
-                                                    {record.amount}
+                                                    {formatCurrency(record.amount)}
                                                 </td>
-                                                <td className="p-4 align-middle text-left font-mono">{record.runningBalance}</td>
+                                                <td className="p-4 align-middle text-left font-mono">{formatCurrency(record.runningBalance)}</td>
                                                 <td className="p-4 align-middle text-center">
                                                     {(record.type === 'PAYMENT' || record.type === 'ORDER') && (
                                                         <DropdownMenu>
@@ -427,20 +456,14 @@ export default function CustomerDetailsPage() {
                                                                         />
                                                                         <DropdownMenuItem
                                                                             className="text-red-600 focus:text-red-600 cursor-pointer"
+                                                                            disabled={actionLoading === `delete-payment-${record.referenceId}`}
                                                                             onClick={async () => {
-                                                                                if (confirm('هل أنت متأكد من حذف هذه الدفعة نهائياً؟')) {
-                                                                                    try {
-                                                                                        await paymentsService.delete(record.referenceId);
-                                                                                        if (id) {
-                                                                                            fetchCustomerDetails(parseInt(id));
-                                                                                            fetchFinancialHistory(parseInt(id));
-                                                                                            fetchDeletedHistory(parseInt(id));
-                                                                                        }
-                                                                                    } catch (e) {
-                                                                                        console.error('Failed to delete', e);
-                                                                                        alert('حدث خطأ أثناء الحذف');
-                                                                                    }
-                                                                                }
+                                                                                if (!confirm('هل أنت متأكد من حذف هذه الدفعة نهائياً؟')) return;
+                                                                                await runAction(
+                                                                                    `delete-payment-${record.referenceId}`,
+                                                                                    () => paymentsService.delete(record.referenceId),
+                                                                                    'تم حذف الدفعة بنجاح'
+                                                                                );
                                                                             }}
                                                                         >
                                                                             <Trash className="mr-2 h-4 w-4" />
@@ -451,20 +474,14 @@ export default function CustomerDetailsPage() {
                                                                 {record.type === 'PAYMENT' && record.status === 'deleted' && (
                                                                     <DropdownMenuItem
                                                                         className="text-green-600 focus:text-green-600 cursor-pointer"
+                                                                        disabled={actionLoading === `restore-payment-${record.referenceId}`}
                                                                         onClick={async () => {
-                                                                            if (confirm('هل أنت متأكد من استعادة هذه الدفعة؟')) {
-                                                                                try {
-                                                                                    await paymentsService.restore(record.referenceId);
-                                                                                    if (id) {
-                                                                                        fetchCustomerDetails(parseInt(id));
-                                                                                        fetchFinancialHistory(parseInt(id));
-                                                                                        fetchDeletedHistory(parseInt(id));
-                                                                                    }
-                                                                                } catch (e) {
-                                                                                    console.error('Failed to restore', e);
-                                                                                    alert('حدث خطأ أثناء الاستعادة');
-                                                                                }
-                                                                            }
+                                                                            if (!confirm('هل أنت متأكد من استعادة هذه الدفعة؟')) return;
+                                                                            await runAction(
+                                                                                `restore-payment-${record.referenceId}`,
+                                                                                () => paymentsService.restore(record.referenceId),
+                                                                                'تم استعادة الدفعة بنجاح'
+                                                                            );
                                                                         }}
                                                                     >
                                                                         <RefreshCcw className="mr-2 h-4 w-4" />
@@ -493,20 +510,14 @@ export default function CustomerDetailsPage() {
                                                                         />
                                                                         <DropdownMenuItem
                                                                             className="text-red-600 focus:text-red-600 cursor-pointer"
+                                                                            disabled={actionLoading === `delete-order-${record.referenceId}`}
                                                                             onClick={async () => {
-                                                                                if (confirm('هل أنت متأكد من حذف هذا الطلب نهائياً؟')) {
-                                                                                    try {
-                                                                                        await ordersService.delete(record.referenceId);
-                                                                                        if (id) {
-                                                                                            fetchCustomerDetails(parseInt(id));
-                                                                                            fetchFinancialHistory(parseInt(id));
-                                                                                            fetchDeletedHistory(parseInt(id));
-                                                                                        }
-                                                                                    } catch (e) {
-                                                                                        console.error('Failed to delete', e);
-                                                                                        alert('حدث خطأ أثناء الحذف');
-                                                                                    }
-                                                                                }
+                                                                                if (!confirm('هل أنت متأكد من حذف هذا الطلب نهائياً؟')) return;
+                                                                                await runAction(
+                                                                                    `delete-order-${record.referenceId}`,
+                                                                                    () => ordersService.delete(record.referenceId),
+                                                                                    'تم حذف الطلب بنجاح'
+                                                                                );
                                                                             }}
                                                                         >
                                                                             <Trash className="mr-2 h-4 w-4" />
@@ -517,20 +528,14 @@ export default function CustomerDetailsPage() {
                                                                 {record.type === 'ORDER' && record.status === 'deleted' && (
                                                                     <DropdownMenuItem
                                                                         className="text-green-600 focus:text-green-600 cursor-pointer"
+                                                                        disabled={actionLoading === `restore-order-${record.referenceId}`}
                                                                         onClick={async () => {
-                                                                            if (confirm('هل أنت متأكد من استعادة هذا الطلب؟')) {
-                                                                                try {
-                                                                                    await ordersService.restore(record.referenceId);
-                                                                                    if (id) {
-                                                                                        fetchCustomerDetails(parseInt(id));
-                                                                                        fetchFinancialHistory(parseInt(id));
-                                                                                        fetchDeletedHistory(parseInt(id));
-                                                                                    }
-                                                                                } catch (e) {
-                                                                                    console.error('Failed to restore', e);
-                                                                                    alert('حدث خطأ أثناء الاستعادة');
-                                                                                }
-                                                                            }
+                                                                            if (!confirm('هل أنت متأكد من استعادة هذا الطلب؟')) return;
+                                                                            await runAction(
+                                                                                `restore-order-${record.referenceId}`,
+                                                                                () => ordersService.restore(record.referenceId),
+                                                                                'تم استعادة الطلب بنجاح'
+                                                                            );
                                                                         }}
                                                                     >
                                                                         <RefreshCcw className="mr-2 h-4 w-4" />
@@ -594,7 +599,7 @@ export default function CustomerDetailsPage() {
                                                     </td>
                                                     <td className="p-4 align-middle">{record.description}</td>
                                                     <td className="p-4 align-middle font-bold text-red-600">
-                                                        {record.amount} جنية
+                                                        {formatCurrency(record.amount)}
                                                     </td>
                                                     <td className="p-4 align-middle font-medium">
                                                         {record.deleted_by?.username || '-'}
@@ -702,7 +707,7 @@ export default function CustomerDetailsPage() {
                 <div className="hidden print-overlay-container bg-white z-[9999]" dir="rtl">
                     <Invoice
                         order={orderToPrint}
-                        previousBalance={0}
+                        previousBalance={computePreviousBalance(orderToPrint)}
                         customerName={currentCustomer.name}
                         customerPhone={currentCustomer.phone}
                     />

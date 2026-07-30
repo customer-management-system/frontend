@@ -80,7 +80,7 @@ export function CustomerStatementReport({ customer, financialHistory, startDate,
                     {/* Previous Balance Row could go here if we tracked it historically.
                         For now, assuming runningBalance on first record gives context, or we just rely on runningBalance column.*/}
 
-                    {sortedRecords.map((record, index) => {
+                    {sortedRecords.map((record) => {
                         const isPayment = record.type === 'PAYMENT';
                         const isOrder = record.type === 'ORDER';
                         

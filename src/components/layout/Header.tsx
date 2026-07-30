@@ -1,14 +1,32 @@
 import { Bell, Search, User } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
+
+const ROUTE_TITLES: Record<string, string> = {
+    '/': 'لوحة التحكم',
+    '/categories': 'الفئات',
+    '/products': 'المنتجات',
+    '/customers': 'العملاء',
+    '/users': 'إدارة المستخدمين',
+    '/financials': 'الماليات',
+};
+
+function getPageTitle(pathname: string): string {
+    if (pathname.startsWith('/customers/')) {
+        return 'تفاصيل العميل';
+    }
+    return ROUTE_TITLES[pathname] ?? 'نظام إدارة العملاء';
+}
 
 export function Header() {
     const { user } = useAuthStore();
+    const location = useLocation();
+    const pageTitle = getPageTitle(location.pathname);
 
     return (
         <header className="h-16 bg-white border-b flex items-center justify-between px-6 sticky top-0 z-40">
             <div className="flex items-center gap-4">
-                {/* Placeholder for Breadcrumbs or Page Title */}
-                <h2 className="text-xl font-semibold text-gray-800">الفئات</h2>
+                <h2 className="text-xl font-semibold text-gray-800">{pageTitle}</h2>
             </div>
 
             <div className="flex items-center gap-4">

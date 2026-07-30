@@ -33,20 +33,20 @@ export interface AuthResponse {
 
 export const authService = {
     login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-        console.log('AuthService: login called', credentials);
-        try {
-            const response = await api.post<AuthResponse>('/auth/login', credentials);
-            console.log('AuthService: response received', response);
-            return response.data;
-        } catch (error) {
-            console.error('AuthService: error in login request', error);
-            throw error;
-        }
+        const response = await api.post<AuthResponse>('/auth/login', credentials);
+        return response.data;
     },
 
-    logout: () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+    logout: async (): Promise<void> => {
+        try {
+            await api.post('/auth/logout');
+        } catch {
+            // Proceed with local cleanup even if server logout fails
+        } finally {
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+        }
     },
 
     getCurrentUser: (): User | null => {
@@ -54,14 +54,9 @@ export const authService = {
         if (!token) return null;
 
         try {
-            // Decode the JWT payload. Format: Header.Payload.Signature
             const payload = token.split('.')[1];
-            // atob decodes base64 string
             const decodedPayload = JSON.parse(atob(payload));
 
-            // Reconstruct user object from token payload directly
-
-            // For fields not in token, try to grab from parsed local storage as a fallback
             const lsUserStr = localStorage.getItem('user');
             const lsUser = lsUserStr ? JSON.parse(lsUserStr) : null;
 
@@ -69,12 +64,11 @@ export const authService = {
                 id: decodedPayload.sub,
                 email: decodedPayload.email,
                 role: decodedPayload.role as UserRole,
-                username: decodedPayload.username || decodedPayload.email.split('@')[0], // Fallback if username isn't in token
+                username: decodedPayload.username || decodedPayload.email.split('@')[0],
                 isActive: lsUser?.isActive ?? true,
             };
         } catch (error) {
             console.error('Failed to decode token for current user', error);
-            // Fallback to local storage if token decode fails (though token should be the source of truth)
             const userStr = localStorage.getItem('user');
             if (userStr) return JSON.parse(userStr);
             return null;

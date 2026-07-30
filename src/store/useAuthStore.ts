@@ -8,7 +8,7 @@ interface AuthState {
     isLoading: boolean;
     error: string | null;
     login: (credentials: LoginCredentials) => Promise<void>;
-    logout: () => void;
+    logout: () => Promise<void>;
     checkAuth: () => void;
 }
 
@@ -23,9 +23,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ isLoading: true, error: null });
         try {
             const response = await authService.login(credentials);
-            const { token, user } = response.data;
+            const { token, refreshToken, user } = response.data;
 
             localStorage.setItem('token', token);
+            localStorage.setItem('refreshToken', refreshToken);
             localStorage.setItem('user', JSON.stringify(user));
 
             set({
@@ -43,9 +44,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         }
     },
 
-    logout: () => {
-        authService.logout();
-        localStorage.removeItem('refreshToken');
+    logout: async () => {
+        await authService.logout();
         set({
             user: null,
             token: null,

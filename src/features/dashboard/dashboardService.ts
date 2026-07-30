@@ -1,13 +1,4 @@
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
-
-const getHeaders = () => {
-    const token = localStorage.getItem('token');
-    return {
-        Authorization: `Bearer ${token}`,
-    };
-};
+import api from '@/lib/axios';
 
 export interface CashFlowTimelineEntry {
     date: string;
@@ -101,50 +92,43 @@ export interface TopProductsResponse {
 
 export const dashboardService = {
     getCashFlow: async (startDate?: string, endDate?: string) => {
-        let url = `${API_URL}/dashboard/financials/cash-flow`;
-        const params = new URLSearchParams();
-        if (startDate) params.append('startDate', startDate);
-        if (endDate) params.append('endDate', endDate);
-        if (params.toString()) url += `?${params.toString()}`;
+        const params: Record<string, string> = {};
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
 
-        const response = await axios.get<CashFlowResponse>(url, { headers: getHeaders() });
+        const response = await api.get<CashFlowResponse>('/dashboard/financials/cash-flow', { params });
         return response.data;
     },
 
     getKPIs: async (startDate?: string, endDate?: string) => {
-        let url = `${API_URL}/dashboard/kpis`;
-        const params = new URLSearchParams();
-        if (startDate) params.append('startDate', startDate);
-        if (endDate) params.append('endDate', endDate);
-        if (params.toString()) url += `?${params.toString()}`;
+        const params: Record<string, string> = {};
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
 
-        const response = await axios.get<KPIsResponse>(url, { headers: getHeaders() });
+        const response = await api.get<KPIsResponse>('/dashboard/kpis', { params });
         return response.data;
     },
 
     getAlerts: async (startDate?: string, endDate?: string) => {
-        let url = `${API_URL}/dashboard/operations/alerts`;
-        const params = new URLSearchParams();
-        if (startDate) params.append('startDate', startDate);
-        if (endDate) params.append('endDate', endDate);
-        if (params.toString()) url += `?${params.toString()}`;
+        const params: Record<string, string> = {};
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
 
-        const response = await axios.get<AlertsResponse>(url, { headers: getHeaders() });
+        const response = await api.get<AlertsResponse>('/dashboard/operations/alerts', { params });
         return response.data;
     },
 
     getCustomersDebt: async (limit: number = 10) => {
-        const url = `${API_URL}/dashboard/customers/debt?limit=${limit}`;
-        const response = await axios.get<CustomersDebtResponse>(url, { headers: getHeaders() });
+        const response = await api.get<CustomersDebtResponse>('/dashboard/customers/debt', { params: { limit } });
         return response.data;
     },
 
     getTopProducts: async (startDate?: string, endDate?: string, limit: number = 10) => {
-        let url = `${API_URL}/dashboard/products/top-performers?limit=${limit}`;
-        if (startDate) url += `&startDate=${startDate}`;
-        if (endDate) url += `&endDate=${endDate}`;
+        const params: Record<string, string | number> = { limit };
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
 
-        const response = await axios.get<TopProductsResponse>(url, { headers: getHeaders() });
+        const response = await api.get<TopProductsResponse>('/dashboard/products/top-performers', { params });
         return response.data;
     },
 };

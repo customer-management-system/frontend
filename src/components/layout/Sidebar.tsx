@@ -3,7 +3,8 @@ import {
     Package,
     Users,
     DollarSign,
-    LogOut
+    LogOut,
+    ScrollText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link, useLocation } from 'react-router-dom';
@@ -16,7 +17,8 @@ const sidebarItems = [
     { icon: Package, label: 'المنتجات', href: '/products', roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF] },
     { icon: Users, label: 'إدارة المستخدمين', href: '/users', roles: [UserRole.ADMIN] }, // New item for Admin
     { icon: Users, label: 'العملاء', href: '/customers', roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF] },
-    { icon: DollarSign, label: 'الماليات', href: '/financials', roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF] },
+    { icon: ScrollText, label: 'سجل التدقيق', href: '/audit-trail', roles: [UserRole.ADMIN, UserRole.MANAGER] },
+    { icon: DollarSign, label: 'الماليات', href: '/financials', roles: [UserRole.ADMIN] },
 ];
 
 export function Sidebar() {

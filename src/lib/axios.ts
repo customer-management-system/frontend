@@ -1,14 +1,48 @@
 import axios from 'axios';
 import { API_URL } from './apiConfig';
 
-// Create an instance of axios
 const api = axios.create({
-    baseURL: API_URL,    headers: {
+    baseURL: API_URL,
+    headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// Request interceptor for API calls
+let refreshPromise: Promise<{ token: string; refreshToken: string }> | null = null;
+
+async function refreshTokens(): Promise<{ token: string; refreshToken: string }> {
+    if (!refreshPromise) {
+        refreshPromise = (async () => {
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (!refreshToken) {
+                throw new Error('No refresh token available');
+            }
+
+            const response = await axios.post(`${API_URL}/auth/refresh`, {
+                refreshToken,
+            });
+
+            const { token, refreshToken: newRefreshToken } = response.data.data;
+
+            localStorage.setItem('token', token);
+            localStorage.setItem('refreshToken', newRefreshToken);
+
+            return { token, refreshToken: newRefreshToken };
+        })().finally(() => {
+            refreshPromise = null;
+        });
+    }
+
+    return refreshPromise;
+}
+
+function clearAuthAndRedirect() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+}
+
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
@@ -17,56 +51,27 @@ api.interceptors.request.use(
         }
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
-// Response interceptor for API calls
 api.interceptors.response.use(
-    (response) => {
-        return response;
-    },
+    (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
-        // Handle 401 errors (unauthorized)
-        // Handle 401 errors (unauthorized)
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
             originalRequest._retry = true;
 
             try {
-                const refreshToken = localStorage.getItem('refreshToken');
-                if (!refreshToken) {
-                    throw new Error('No refresh token available');
-                }
-
-                // Call refresh endpoint directly using axios to satisfy the circular dependency or just import api?
-                // Importing api might cause circular issues if we use it inside its own interceptor definitions depending on how it's structured.
-                // But generally safe if we don't recurse. 
-                // However, easier to just use fetch or a separate axios instance or just import axios.
-                const response = await axios.post(`${API_URL}/auth/refresh`, {
-                    refreshToken
-                });
-
-                const { token, refreshToken: newRefreshToken } = response.data.data;
-
-                localStorage.setItem('token', token);
-                localStorage.setItem('refreshToken', newRefreshToken);
-
-                // Update header and retry original request
+                const { token } = await refreshTokens();
                 originalRequest.headers['Authorization'] = `Bearer ${token}`;
                 return api(originalRequest);
-
-            } catch (refreshError) {
-                // Refresh failed - logout
-                localStorage.removeItem('token');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('user');
-                window.location.href = '/login';
-                return Promise.reject(refreshError);
+            } catch {
+                clearAuthAndRedirect();
+                return Promise.reject(error);
             }
         }
+
         return Promise.reject(error);
     }
 );
