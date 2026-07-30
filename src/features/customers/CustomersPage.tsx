@@ -3,15 +3,37 @@ import { columns } from "./columns";
 import { useCustomersStore } from "./store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, ChevronRight, ChevronLeft, Search } from "lucide-react";
+import { Plus, ChevronRight, ChevronLeft, Search, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CustomerForm } from "./CustomerForm";
 import { useEffect, useState } from "react";
+import { CustomerBalancesReport } from "./CustomerBalancesReport";
+import { customersService } from "./customersService";
+import { Customer } from "./schema";
 
 export default function CustomersPage() {
     const { customers, fetchCustomers, isDeleted, setFilter, customerToEdit, setCustomerToEdit, meta, searchQuery, setSearchQuery } = useCustomersStore();
     const [open, setOpen] = useState(false);
     const [localSearch, setLocalSearch] = useState(searchQuery);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+    const [reportCustomers, setReportCustomers] = useState<Customer[]>([]);
+
+    const handleGenerateReport = async () => {
+        try {
+            setIsGeneratingReport(true);
+            const response = await customersService.getAll(1, 1000000, '', false);
+            setReportCustomers(response.data.customers);
+
+            setTimeout(() => {
+                window.print();
+                setIsGeneratingReport(false);
+            }, 500);
+        } catch (error) {
+            console.error("Failed to fetch customers for report:", error);
+            alert("حدث خطأ أثناء استخراج التقرير");
+            setIsGeneratingReport(false);
+        }
+    };
 
     useEffect(() => {
         fetchCustomers();
@@ -27,115 +49,130 @@ export default function CustomersPage() {
     }, [localSearch, searchQuery, setSearchQuery]);
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">العملاء</h1>
-                    <p className="text-muted-foreground">إدارة قائمة العملاء وبياناتهم</p>
-                </div>
+        <>
+            <div className="space-y-6 print:hidden">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-gray-900">العملاء</h1>
+                        <p className="text-muted-foreground">إدارة قائمة العملاء وبياناتهم</p>
+                    </div>
 
-                <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="gap-2">
-                            <Plus className="h-4 w-4" />
-                            إضافة عميل
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={handleGenerateReport}
+                            disabled={isGeneratingReport}
+                            className="gap-2"
+                        >
+                            <FileText className="h-4 w-4" />
+                            {isGeneratingReport ? "جاري التحضير..." : "استخراج تقرير"}
                         </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>إضافة عميل جديد</DialogTitle>
-                            <DialogDescription>
-                                قم بإدخال بيانات العميل الجديد هنا. اضغط حفظ عند الانتهاء.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <CustomerForm onSuccess={() => setOpen(false)} />
-                    </DialogContent>
-                </Dialog>
 
-                {/* Edit Dialog */}
-                <Dialog open={!!customerToEdit} onOpenChange={(val) => !val && setCustomerToEdit(null)}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>تعديل بيانات العميل</DialogTitle>
-                            <DialogDescription>
-                                قم بتعديل بيانات العميل أدناه.
-                            </DialogDescription>
-                        </DialogHeader>
-                        {customerToEdit && (
-                            <CustomerForm
-                                initialData={customerToEdit}
-                                onSuccess={() => setCustomerToEdit(null)}
-                            />
-                        )}
-                    </DialogContent>
-                </Dialog>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <div className="flex border-b">
-                        <button
-                            onClick={() => setFilter(false)}
-                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${!isDeleted
-                                ? 'border-primary text-primary'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                        >
-                            نشط
-                        </button>
-                        <button
-                            onClick={() => setFilter(true)}
-                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${isDeleted
-                                ? 'border-red-500 text-red-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                        >
-                            محذوف
-                        </button>
+                        <Dialog open={open} onOpenChange={setOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="gap-2">
+                                    <Plus className="h-4 w-4" />
+                                    إضافة عميل
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>إضافة عميل جديد</DialogTitle>
+                                    <DialogDescription>
+                                        قم بإدخال بيانات العميل الجديد هنا. اضغط حفظ عند الانتهاء.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <CustomerForm onSuccess={() => setOpen(false)} />
+                            </DialogContent>
+                        </Dialog>
                     </div>
 
-                    <div className="relative w-full sm:w-72">
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                        <Input
-                            placeholder="بحث عن عميل..."
-                            value={localSearch}
-                            onChange={(e) => setLocalSearch(e.target.value)}
-                            className="pl-4 pr-10"
-                        />
-                    </div>
+                    {/* Edit Dialog */}
+                    <Dialog open={!!customerToEdit} onOpenChange={(val) => !val && setCustomerToEdit(null)}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>تعديل بيانات العميل</DialogTitle>
+                                <DialogDescription>
+                                    قم بتعديل بيانات العميل أدناه.
+                                </DialogDescription>
+                            </DialogHeader>
+                            {customerToEdit && (
+                                <CustomerForm
+                                    initialData={customerToEdit}
+                                    onSuccess={() => setCustomerToEdit(null)}
+                                />
+                            )}
+                        </DialogContent>
+                    </Dialog>
                 </div>
 
-                <DataTable columns={columns} data={customers} enablePagination={false} />
-
-                {/* Server-side pagination controls */}
-                {meta && meta.totalPages > 1 && (
-                    <div className="flex items-center justify-between py-4">
-                        <div className="text-sm text-muted-foreground">
-                            صفحة {meta.page} من {meta.totalPages} — إجمالي {meta.total} عميل
+                <div className="bg-white p-6 rounded-lg shadow-sm border">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <div className="flex border-b">
+                            <button
+                                onClick={() => setFilter(false)}
+                                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${!isDeleted
+                                    ? 'border-primary text-primary'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    }`}
+                            >
+                                نشط
+                            </button>
+                            <button
+                                onClick={() => setFilter(true)}
+                                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${isDeleted
+                                    ? 'border-red-500 text-red-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    }`}
+                            >
+                                محذوف
+                            </button>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => fetchCustomers(meta.page - 1)}
-                                disabled={meta.page <= 1}
-                            >
-                                <ChevronRight className="h-4 w-4 ml-2" />
-                                السابق
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => fetchCustomers(meta.page + 1)}
-                                disabled={meta.page >= meta.totalPages}
-                            >
-                                التالي
-                                <ChevronLeft className="h-4 w-4 mr-2" />
-                            </Button>
+
+                        <div className="relative w-full sm:w-72">
+                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                            <Input
+                                placeholder="بحث عن عميل..."
+                                value={localSearch}
+                                onChange={(e) => setLocalSearch(e.target.value)}
+                                className="pl-4 pr-10"
+                            />
                         </div>
                     </div>
-                )}
+
+                    <DataTable columns={columns} data={customers} enablePagination={false} />
+
+                    {/* Server-side pagination controls */}
+                    {meta && meta.totalPages > 1 && (
+                        <div className="flex items-center justify-between py-4">
+                            <div className="text-sm text-muted-foreground">
+                                صفحة {meta.page} من {meta.totalPages} — إجمالي {meta.total} عميل
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => fetchCustomers(meta.page - 1)}
+                                    disabled={meta.page <= 1}
+                                >
+                                    <ChevronRight className="h-4 w-4 ml-2" />
+                                    السابق
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => fetchCustomers(meta.page + 1)}
+                                    disabled={meta.page >= meta.totalPages}
+                                >
+                                    التالي
+                                    <ChevronLeft className="h-4 w-4 mr-2" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+            <CustomerBalancesReport customers={reportCustomers} />
+        </>
     );
 }

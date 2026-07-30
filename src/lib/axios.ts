@@ -3,7 +3,8 @@ import { API_URL } from './apiConfig';
 
 // Create an instance of axios
 const api = axios.create({
-    baseURL: API_URL,
+
+    baseURL: 'http://localhost:3000/api/v1', // Should be in .env in production
     headers: {
         'Content-Type': 'application/json',
     },

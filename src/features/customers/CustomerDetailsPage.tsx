@@ -14,6 +14,7 @@ import { UpdatePaymentDialog } from "../payments/UpdatePaymentDialog";
 import { ReversePaymentDialog } from "../payments/ReversePaymentDialog";
 import { PaymentMethod, OrderData } from "../orders/schema";
 import { PaymentInvoice, PaymentData } from "../payments/PaymentInvoice";
+import { CustomerStatementReport } from "./CustomerStatementReport";
 import { UpdateOrderDialog } from "../orders/UpdateOrderDialog";
 import { ordersService } from "../orders/ordersService";
 import {
@@ -52,6 +53,15 @@ export default function CustomerDetailsPage() {
     const [isPrintingInfo, setIsPrintingInfo] = useState<number | null>(null);
     const [paymentToPrint, setPaymentToPrint] = useState<PaymentData | null>(null);
     const [isPrintingPayment, setIsPrintingPayment] = useState<number | null>(null);
+    const [isPrintingStatement, setIsPrintingStatement] = useState(false);
+
+    const handlePrintStatement = () => {
+        setIsPrintingStatement(true);
+        setTimeout(() => {
+            window.print();
+            setIsPrintingStatement(false);
+        }, 500);
+    };
 
     const handlePrintOrder = async (orderId: number) => {
         try {
@@ -280,6 +290,15 @@ export default function CustomerDetailsPage() {
                                         إلغاء الفلتر
                                     </Button>
                                 )}
+                                <Button
+                                    variant="outline"
+                                    onClick={handlePrintStatement}
+                                    disabled={isPrintingStatement || !financialHistory || financialHistory.history.length === 0}
+                                    className="gap-2"
+                                >
+                                    <Printer className="h-4 w-4" />
+                                    {isPrintingStatement ? 'جاري التحضير...' : 'طباعة كشف الحساب'}
+                                </Button>
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -689,6 +708,13 @@ export default function CustomerDetailsPage() {
                     <PaymentInvoice payment={paymentToPrint} />
                 </div>
             )}
+
+            <CustomerStatementReport 
+                customer={currentCustomer} 
+                financialHistory={financialHistory} 
+                startDate={dateRange?.from} 
+                endDate={dateRange?.to}
+            />
         </div>
     );
 }

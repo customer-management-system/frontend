@@ -119,7 +119,7 @@ export function PaymentInvoice({ payment }: PaymentInvoiceProps) {
                     <p className="mb-2">
                         للتواصل
                     </p>
-                    <p>01122230321</p>
+                    <p>01224483271</p>
                 </div>
             </div>
         </div>
