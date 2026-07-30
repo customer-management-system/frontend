@@ -1,7 +1,6 @@
 import axios from "axios";
 import { CreatePaymentRequest, UpdatePaymentRequest, ReversePaymentRequest } from "./schema";
-
-const API_URL = import.meta.env.VITE_API_URL || "https://backend-fggt.onrender.com/api/v1";
+import { API_URL } from "@/lib/apiConfig";
 
 const getHeaders = () => {
     const token = localStorage.getItem("token");
