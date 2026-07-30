@@ -40,7 +40,7 @@ const translateMethod = (method: string) => {
 
 export function PaymentInvoice({ payment }: PaymentInvoiceProps) {
     return (
-        <div className="hidden print:block print:absolute print:inset-0 print:m-0 print:w-full print:max-w-[210mm] print:mx-auto print:h-auto p-4 text-center bg-white text-black font-bold leading-tight print:scale-100 print:origin-top" dir="rtl">
+        <div className="p-4 text-center bg-white text-black font-bold leading-tight w-full max-w-[210mm] mx-auto" dir="rtl">
 
             <div className="mb-8">
                 <h1 className="text-xl">إستلام نقدية</h1>

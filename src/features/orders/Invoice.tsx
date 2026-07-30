@@ -18,10 +18,10 @@ export function Invoice({ order, customerName }: InvoiceProps) {
     // المسميات بناء على طلب العميل
     const statementValue = discountAmount + totalAmount; // قيمة البيان
     const prevBalance = currentTotalBalance - balance; // الرصيد السابق
-    const totalQuantity = order.items.reduce((sum, item) => sum + Number(item.quantity), 0); // اجمالي الكمية
+    const totalQuantity = (order.items ?? []).reduce((sum, item) => sum + Number(item.quantity), 0);
 
     return (
-        <div className="hidden print:block print:absolute print:inset-0 print:m-0 print:w-full print:max-w-[210mm] print:mx-auto print:h-auto p-8 text-right bg-white text-black leading-tight print:scale-100 print:origin-top" dir="rtl">
+        <div className="p-8 text-right bg-white text-black leading-tight w-full max-w-[210mm] mx-auto" dir="rtl">
             {/* Header */}
             <div className="flex justify-between items-start border-b-2 border-black pb-4 mb-6">
                 <div className="text-center w-1/3">
@@ -56,7 +56,7 @@ export function Invoice({ order, customerName }: InvoiceProps) {
                     </tr>
                 </thead>
                 <tbody>
-                    {order.items.map((item, index) => (
+                    {(order.items ?? []).map((item, index) => (
                         <tr key={item.id} className="border-b-2 border-black">
                             <td className="border-x-2 border-black p-2 text-center">{index + 1}</td>
                             <td className="border-x-2 border-black p-2 text-center">{item.product_name}</td>

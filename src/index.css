@@ -70,18 +70,54 @@
 
 @layer utilities {
   @media print {
+    @page {
+      size: A4 portrait;
+      margin: 1cm;
+    }
+
     body.printing-invoice * {
       visibility: hidden;
     }
-    body.printing-invoice .print-overlay-container,
-    body.printing-invoice .print-overlay-container * {
-      visibility: visible;
-    }
     body.printing-invoice .print-overlay-container {
+      display: block !important;
+      visibility: visible;
       position: absolute;
       left: 0;
       top: 0;
       width: 100%;
+    }
+    body.printing-invoice .print-overlay-container * {
+      visibility: visible;
+    }
+
+    body.printing-statement * {
+      visibility: hidden;
+    }
+    body.printing-statement .print-statement-container {
+      display: block !important;
+      visibility: visible;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    body.printing-statement .print-statement-container * {
+      visibility: visible;
+    }
+
+    body.printing-balances * {
+      visibility: hidden;
+    }
+    body.printing-balances .print-balances-container {
+      display: block !important;
+      visibility: visible;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    body.printing-balances .print-balances-container * {
+      visibility: visible;
     }
   }
 }

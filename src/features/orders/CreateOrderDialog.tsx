@@ -48,6 +48,7 @@ import { ordersService } from "./ordersService";
 import { customersService } from "../customers/customersService";
 import { PricingHistoryItem } from "../customers/schema";
 import { Invoice } from "./Invoice";
+import { PrintOverlay } from "@/components/shared/PrintOverlay";
 
 interface CreateOrderDialogProps {
     customerId: number;
@@ -159,14 +160,11 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
         try {
             // 1. Fetch current customer details for previous balance
             const customerResponse = await customersService.getById(customerId);
-            if (customerResponse) { // Assuming getById returns the customer object directly or we adjust
-                // The service actually returns Customer object directly based on previous view_file
-                setPreviousBalance(customerResponse.outstanding_balance || 0);
-                setCurrentCustomer({
-                    name: customerResponse.name,
-                    phone: customerResponse.phone
-                });
-            }
+            setPreviousBalance(customerResponse?.outstanding_balance || 0);
+            setCurrentCustomer({
+                name: customerResponse?.name ?? "العميل",
+                phone: customerResponse?.phone ?? "",
+            });
 
             // 2. Create Order
             const response = await ordersService.create(data);
@@ -223,52 +221,52 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
         if (onSuccess) onSuccess(); // Trigger refresh on data
     };
 
-    // If order is created, showing specific dialog content
-    if (createdOrder && currentCustomer) {
-        return (
-            <>
-                <Dialog open={open} onOpenChange={(val) => !val && handleReset()}>
-                    <DialogContent className="max-w-md print:hidden">
-                        <DialogHeader>
-                            <DialogTitle className="text-center text-green-600">تم إنشاء الطلب بنجاح</DialogTitle>
-                        </DialogHeader>
-                        <div className="flex flex-col gap-4 py-4">
-                            <div className="text-center space-y-2">
-                                <p>رقم الفاتورة: <span className="font-bold">{createdOrder.invoice?.number}</span></p>
-                                <p>الإجمالي: <span className="font-bold">{createdOrder.total_amount}</span></p>
-                            </div>
-                            <div className="flex gap-4 justify-center">
-                                <Button onClick={handlePrint} className="flex-1 gap-2">
-                                    طباعة الفاتورة
-                                </Button>
-                                <Button variant="outline" onClick={handleReset} className="flex-1">
-                                    إغلاق
-                                </Button>
-                            </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+    const showSuccess = Boolean(createdOrder && currentCustomer);
 
-                {/* Hidden Invoice Component that shows up on print */}
-                <div className="hidden print:block print-overlay-container bg-white z-[9999]">
-                    <Invoice
-                        order={createdOrder}
-                        previousBalance={previousBalance}
-                        customerName={currentCustomer.name}
-                        customerPhone={currentCustomer.phone}
-                    />
-                </div>
-            </>
-        )
-    }
-
-    // Normal Form Render
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button>إنشاء طلب جديد</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto print:hidden">
+        <>
+            <Dialog
+                open={open}
+                onOpenChange={(val) => {
+                    if (!val) {
+                        if (showSuccess) {
+                            handleReset();
+                        } else {
+                            setOpen(false);
+                        }
+                    } else {
+                        setOpen(true);
+                    }
+                }}
+            >
+                {!showSuccess && (
+                    <DialogTrigger asChild>
+                        <Button>إنشاء طلب جديد</Button>
+                    </DialogTrigger>
+                )}
+                <DialogContent className={showSuccess ? "max-w-md print:hidden" : "max-w-4xl max-h-[90vh] overflow-y-auto print:hidden"}>
+                    {showSuccess && createdOrder && currentCustomer ? (
+                        <>
+                            <DialogHeader>
+                                <DialogTitle className="text-center text-green-600">تم إنشاء الطلب بنجاح</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex flex-col gap-4 py-4">
+                                <div className="text-center space-y-2">
+                                    <p>رقم الفاتورة: <span className="font-bold">{createdOrder.invoice?.number}</span></p>
+                                    <p>الإجمالي: <span className="font-bold">{createdOrder.total_amount}</span></p>
+                                </div>
+                                <div className="flex gap-4 justify-center">
+                                    <Button onClick={handlePrint} className="flex-1 gap-2">
+                                        طباعة الفاتورة
+                                    </Button>
+                                    <Button variant="outline" onClick={handleReset} className="flex-1">
+                                        إغلاق
+                                    </Button>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <>
                 <DialogHeader>
                     <DialogTitle>إنشاء طلب جديد</DialogTitle>
                 </DialogHeader>
@@ -550,7 +548,21 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                         </DialogFooter>
                     </form>
                 </Form>
-            </DialogContent>
-        </Dialog>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {showSuccess && createdOrder && currentCustomer && (
+                <PrintOverlay>
+                    <Invoice
+                        order={createdOrder}
+                        previousBalance={previousBalance}
+                        customerName={currentCustomer.name}
+                        customerPhone={currentCustomer.phone}
+                    />
+                </PrintOverlay>
+            )}
+        </>
     );
 }

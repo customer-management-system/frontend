@@ -34,6 +34,7 @@ import { createPaymentSchema, CreatePaymentRequest } from "./schema";
 import { PaymentMethod } from "../orders/schema";
 import { paymentsService } from "./paymentsService";
 import { PaymentInvoice, PaymentData } from "./PaymentInvoice";
+import { PrintOverlay } from "@/components/shared/PrintOverlay";
 
 interface MakePaymentDialogProps {
     customerId: number;
@@ -91,11 +92,27 @@ export function MakePaymentDialog({ customerId, onSuccess }: MakePaymentDialogPr
         if (onSuccess) onSuccess();
     };
 
-    if (createdPayment) {
-        return (
-            <>
-                <Dialog open={open} onOpenChange={(val) => !val && handleReset()}>
-                    <DialogContent className="max-w-md print:hidden">
+    const showSuccess = Boolean(createdPayment);
+
+    return (
+        <>
+        <Dialog open={open} onOpenChange={(val) => {
+            setOpen(val);
+            if (!val) {
+                handleReset();
+            }
+        }}>
+            {!showSuccess && (
+            <DialogTrigger asChild>
+                <Button className="gap-2 bg-green-600 hover:bg-green-700 text-white">
+                    <DollarSign className="h-4 w-4" />
+                    تحصيل دفعة
+                </Button>
+            </DialogTrigger>
+            )}
+            <DialogContent className={showSuccess ? "max-w-md print:hidden" : "sm:max-w-[425px] print:hidden"}>
+                {showSuccess && createdPayment ? (
+                    <>
                         <DialogHeader>
                             <DialogTitle className="text-center text-green-600">تم تسجيل الدفعة بنجاح</DialogTitle>
                         </DialogHeader>
@@ -113,30 +130,9 @@ export function MakePaymentDialog({ customerId, onSuccess }: MakePaymentDialogPr
                                 </Button>
                             </div>
                         </div>
-                    </DialogContent>
-                </Dialog>
-
-                <div className="hidden print:block print-overlay-container bg-white z-[9999]">
-                    <PaymentInvoice payment={createdPayment} />
-                </div>
-            </>
-        )
-    }
-
-    return (
-        <Dialog open={open} onOpenChange={(val) => {
-            setOpen(val);
-            if (!val) {
-                handleReset();
-            }
-        }}>
-            <DialogTrigger asChild>
-                <Button className="gap-2 bg-green-600 hover:bg-green-700 text-white">
-                    <DollarSign className="h-4 w-4" />
-                    تحصيل دفعة
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+                    </>
+                ) : (
+                <>
                 <DialogHeader>
                     <DialogTitle>تحصيل دفعة جديدة</DialogTitle>
                 </DialogHeader>
@@ -248,7 +244,16 @@ export function MakePaymentDialog({ customerId, onSuccess }: MakePaymentDialogPr
                         </DialogFooter>
                     </form>
                 </Form>
+                </>
+                )}
             </DialogContent>
         </Dialog>
+
+        {showSuccess && createdPayment && (
+            <PrintOverlay>
+                <PaymentInvoice payment={createdPayment} />
+            </PrintOverlay>
+        )}
+        </>
     );
 }

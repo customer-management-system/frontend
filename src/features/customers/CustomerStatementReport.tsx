@@ -30,43 +30,7 @@ export function CustomerStatementReport({ customer, financialHistory, startDate,
     let totalCredit = 0; // دائن (له)
 
     return (
-        <div id="statement-print-area" className="hidden print:block w-full bg-white text-black print:p-4 text-xs xl:text-sm" dir="rtl">
-            <style>
-                {`
-                    @media print {
-                        body * {
-                            visibility: hidden;
-                        }
-                        #statement-print-area, #statement-print-area * {
-                            visibility: visible;
-                        }
-                        #statement-print-area {
-                            position: absolute;
-                            left: 0;
-                            top: 0;
-                            width: 100%;
-                        }
-                        @page {
-                            size: A4 portrait;
-                            margin: 1cm;
-                        }
-                        .page-break {
-                            page-break-before: always;
-                        }
-                        table {
-                            page-break-inside: auto;
-                        }
-                        tr {
-                            page-break-inside: avoid;
-                            page-break-after: auto;
-                        }
-                        thead {
-                            display: table-header-group;
-                        }
-                    }
-                `}
-            </style>
-            
+        <div className="hidden print-statement-container w-full bg-white text-black p-4 text-xs xl:text-sm" dir="rtl">
             <div className="mb-6 flex flex-col gap-2 border-b-2 border-black pb-2">
                 <div className="flex justify-between items-center">
                     <div className="flex flex-col">

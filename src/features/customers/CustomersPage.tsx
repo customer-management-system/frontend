@@ -25,8 +25,12 @@ export default function CustomersPage() {
             setReportCustomers(response.data.customers);
 
             setTimeout(() => {
+                document.body.classList.add('printing-balances');
                 window.print();
-                setIsGeneratingReport(false);
+                setTimeout(() => {
+                    document.body.classList.remove('printing-balances');
+                    setIsGeneratingReport(false);
+                }, 500);
             }, 500);
         } catch (error) {
             console.error("Failed to fetch customers for report:", error);

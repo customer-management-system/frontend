@@ -58,9 +58,13 @@ export default function CustomerDetailsPage() {
     const handlePrintStatement = () => {
         setIsPrintingStatement(true);
         setTimeout(() => {
+            document.body.classList.add('printing-statement');
             window.print();
-            setIsPrintingStatement(false);
-        }, 500);
+            setTimeout(() => {
+                document.body.classList.remove('printing-statement');
+                setIsPrintingStatement(false);
+            }, 500);
+        }, 100);
     };
 
     const handlePrintOrder = async (orderId: number) => {
@@ -145,7 +149,8 @@ export default function CustomerDetailsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <>
+        <div className="space-y-6 print:hidden">
             <div className="flex items-center gap-4">
                 <Button variant="ghost" className="gap-2" onClick={() => navigate('/customers')}>
                     <ArrowRight className="h-4 w-4" />
@@ -691,9 +696,10 @@ export default function CustomerDetailsPage() {
                     </TabsContent>
                 )}
             </Tabs>
+        </div>
 
             {orderToPrint && currentCustomer && (
-                <div className="hidden print:block print-overlay-container bg-white z-[9999]" dir="rtl">
+                <div className="hidden print-overlay-container bg-white z-[9999]" dir="rtl">
                     <Invoice
                         order={orderToPrint}
                         previousBalance={0}
@@ -704,7 +710,7 @@ export default function CustomerDetailsPage() {
             )}
 
             {paymentToPrint && (
-                <div className="hidden print:block print-overlay-container bg-white z-[9999]">
+                <div className="hidden print-overlay-container bg-white z-[9999]">
                     <PaymentInvoice payment={paymentToPrint} />
                 </div>
             )}
@@ -715,6 +721,6 @@ export default function CustomerDetailsPage() {
                 startDate={dateRange?.from} 
                 endDate={dateRange?.to}
             />
-        </div>
+        </>
     );
 }

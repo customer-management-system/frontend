@@ -45,43 +45,7 @@ export function CustomerBalancesReport({ customers }: CustomerBalancesReportProp
     }).filter(g => g.customers.length > 0); // Only show groups that have customers
 
     return (
-        <div id="print-area" className="hidden print:block w-full bg-white text-black print:p-4 text-xs xl:text-sm" dir="rtl">
-            <style>
-                {`
-                    @media print {
-                        body * {
-                            visibility: hidden;
-                        }
-                        #print-area, #print-area * {
-                            visibility: visible;
-                        }
-                        #print-area {
-                            position: absolute;
-                            left: 0;
-                            top: 0;
-                            width: 100%;
-                        }
-                        @page {
-                            size: A4 portrait;
-                            margin: 1cm;
-                        }
-                        .page-break {
-                            page-break-before: always;
-                        }
-                        table {
-                            page-break-inside: auto;
-                        }
-                        tr {
-                            page-break-inside: avoid;
-                            page-break-after: auto;
-                        }
-                        thead {
-                            display: table-header-group;
-                        }
-                    }
-                `}
-            </style>
-            
+        <div className="hidden print-balances-container w-full bg-white text-black p-4 text-xs xl:text-sm" dir="rtl">
             <div className="text-center mb-6">
                 <div className="flex justify-between items-center border-b-2 border-black pb-2 mb-4">
                     <span className="font-bold">{todayDay} {todayDate}</span>
