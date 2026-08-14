@@ -51,6 +51,7 @@ import { toast } from "react-toastify";
 import { Invoice } from "./Invoice";
 import { PrintOverlay } from "@/components/shared/PrintOverlay";
 import { triggerPrint } from "@/lib/printManager";
+import { getApiErrorMessage } from "@/lib/getErrorMessage";
 
 interface CreateOrderDialogProps {
     customerId: number;
@@ -174,14 +175,8 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                 setCreatedOrder(response.data);
                 // Don't close immediately, show success view
             }
-        } catch (error: any) {
-            const errBody = error.response?.data;
-            const message =
-                errBody?.error?.message ||
-                errBody?.message ||
-                (Array.isArray(errBody?.error?.details) ? 'خطأ في البيانات المرسلة' : null) ||
-                'فشل إنشاء الطلب';
-            toast.error(typeof message === 'string' ? message : 'فشل إنشاء الطلب');
+        } catch (error: unknown) {
+            toast.error(getApiErrorMessage(error, 'فشل إنشاء الطلب'));
         }
     };
 

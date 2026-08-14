@@ -44,6 +44,7 @@ export type PaymentRequest = z.infer<typeof paymentRequestSchema>;
 export const updateOrderItemSchema = z.object({
     id: z.number().optional(), // Existing item ID or new if missing
     product_id: z.number().optional(),
+    product_name: z.string().optional(),
     quantity: z.number().min(1, "Quantity must be at least 1"),
     unit_price: z.number().min(0, "Price must be non-negative"),
 });
@@ -103,9 +104,9 @@ export interface Product {
     default_price: number;
     is_active: true;
     is_deleted: false;
-    created_by: null | any;
-    deleted_by: null | any;
-    deleted_at: null | any;
+    created_by: null | { id: number; username: string };
+    deleted_by: null | { id: number; username: string };
+    deleted_at: null | string;
     created_at: string;
 }
 

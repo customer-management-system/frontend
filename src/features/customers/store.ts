@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Customer, CustomersResponse, FinancialHistoryResponse, DeletedHistoryResponse, UpdateHistoryResponse } from './schema';
 import { customersService } from './customersService';
+import { getErrorMessage } from '@/lib/getErrorMessage';
 
 interface CustomersState {
     customers: Customer[];
@@ -70,8 +71,8 @@ export const useCustomersStore = create<CustomersState>((set, get) => ({
                 meta: response.data.pagination,
                 isLoading: false
             });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch customers', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to fetch customers'), isLoading: false });
         }
     },
 
@@ -82,8 +83,8 @@ export const useCustomersStore = create<CustomersState>((set, get) => ({
             // Refresh list
             const { meta } = get();
             await get().fetchCustomers(meta?.page || 1, meta?.limit || 10);
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to add customer', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to add customer'), isLoading: false });
             throw error;
         }
     },
@@ -107,8 +108,8 @@ export const useCustomersStore = create<CustomersState>((set, get) => ({
             // Refresh list to be safe
             const { meta } = get();
             await get().fetchCustomers(meta?.page || 1, meta?.limit || 10);
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to update customer', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to update customer'), isLoading: false });
             throw error;
         }
     },
@@ -120,8 +121,8 @@ export const useCustomersStore = create<CustomersState>((set, get) => ({
             // Remove from list or refresh
             const { meta } = get();
             await get().fetchCustomers(meta?.page || 1, meta?.limit || 10);
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to delete customer', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to delete customer'), isLoading: false });
             throw error;
         }
     },
@@ -133,8 +134,8 @@ export const useCustomersStore = create<CustomersState>((set, get) => ({
             // Refresh list (it should move to active)
             const { meta } = get();
             await get().fetchCustomers(meta?.page || 1, meta?.limit || 10);
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to restore customer', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to restore customer'), isLoading: false });
             throw error;
         }
     },
@@ -144,8 +145,8 @@ export const useCustomersStore = create<CustomersState>((set, get) => ({
         try {
             const customer = await customersService.getById(id);
             set({ currentCustomer: customer, isLoading: false });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch customer details', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to fetch customer details'), isLoading: false });
         }
     },
 
@@ -154,8 +155,8 @@ export const useCustomersStore = create<CustomersState>((set, get) => ({
         try {
             const response = await customersService.getFinancialHistory(id, startDate, endDate);
             set({ financialHistory: response.data, isLoading: false });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch financial history', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to fetch financial history'), isLoading: false });
         }
     },
 
@@ -164,8 +165,8 @@ export const useCustomersStore = create<CustomersState>((set, get) => ({
         try {
             const response = await customersService.getDeletedHistory(id);
             set({ deletedHistory: response.data, isLoading: false });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch deleted history', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to fetch deleted history'), isLoading: false });
         }
     },
 
@@ -174,8 +175,8 @@ export const useCustomersStore = create<CustomersState>((set, get) => ({
         try {
             const response = await customersService.getUpdateHistory(id);
             set({ updateHistory: response.data, isLoading: false });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch update history', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to fetch update history'), isLoading: false });
         }
     },
 }));

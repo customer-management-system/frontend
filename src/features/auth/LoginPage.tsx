@@ -33,14 +33,9 @@ export default function LoginPage() {
             await login(data);
             console.log('LoginPage: login successful, navigating to home');
             navigate('/');
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('LoginPage: error caught', err);
-            // Error is already handled in store, but we can set local state if needed
-            // or just rely on store error. 
-            // The store sets error state, so we can use that if we want global error,
-            // but usually for forms we want immediate feedback.
-            // Store error might persist appropriately.
-            console.error(err);
+            // Error is already handled in store
         }
     };
 

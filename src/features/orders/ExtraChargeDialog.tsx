@@ -10,6 +10,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { ordersService } from "./ordersService";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { FilePlus, Loader2 } from "lucide-react";
 
 interface ExtraChargeDialogProps {
@@ -46,9 +47,9 @@ export function ExtraChargeDialog({ customerId, onSuccess }: ExtraChargeDialogPr
             if (onSuccess) {
                 onSuccess();
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Failed to add extra charge:", err);
-            setError(err.response?.data?.message || err.message || "حدث خطأ أثناء الإضافة. حاول مرة أخرى.");
+            setError(getErrorMessage(err, "حدث خطأ أثناء الإضافة. حاول مرة أخرى."));
         } finally {
             setIsLoading(false);
         }

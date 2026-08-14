@@ -107,8 +107,8 @@ export interface UpdateSummary {
 }
 
 export interface UpdateChangeItem {
-    old: any;
-    new: any;
+    old: unknown;
+    new: unknown;
 }
 
 export interface UpdateHistoryItem {
@@ -117,8 +117,8 @@ export interface UpdateHistoryItem {
     entity_id: number;
     description: string;
     changes: Record<string, UpdateChangeItem>;
-    old_value: any;
-    new_value: any;
+    old_value: unknown;
+    new_value: unknown;
     updated_by: UserRef | null;
     updated_at: string;
 }

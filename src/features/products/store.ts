@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Product, ProductsResponse } from './schema';
 import { productsService } from './productsService';
+import { getErrorMessage } from '@/lib/getErrorMessage';
 
 interface ProductsState {
     products: Product[];
@@ -56,8 +57,8 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
                 meta: response.data.pagination,
                 isLoading: false
             });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch products', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to fetch products'), isLoading: false });
         }
     },
 
@@ -67,8 +68,8 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
             await productsService.create(productData);
             const { meta } = get();
             await get().fetchProducts(meta?.page || 1, meta?.limit || 10);
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to add product', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to add product'), isLoading: false });
             throw error;
         }
     },
@@ -89,8 +90,8 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
 
             const { meta } = get();
             await get().fetchProducts(meta?.page || 1, meta?.limit || 10);
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to update product', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to update product'), isLoading: false });
             throw error;
         }
     },
@@ -101,8 +102,8 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
             await productsService.delete(id);
             const { meta } = get();
             await get().fetchProducts(meta?.page || 1, meta?.limit || 10);
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to delete product', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to delete product'), isLoading: false });
             throw error;
         }
     },
@@ -112,8 +113,8 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
         try {
             const product = await productsService.getById(id);
             set({ currentProduct: product, isLoading: false });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch product details', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to fetch product details'), isLoading: false });
         }
     },
 }));

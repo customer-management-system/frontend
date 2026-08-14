@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UserRole } from "@/features/auth/authService";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "react-toastify";
 import { z } from "zod";
@@ -55,8 +56,8 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
             }
             onSuccess?.();
             form.reset();
-        } catch (error: any) {
-            toast.error(error.message || "حدث خطأ غير متوقع");
+        } catch (error: unknown) {
+            toast.error(getErrorMessage(error, "حدث خطأ غير متوقع"));
         }
     };
 

@@ -22,6 +22,15 @@ export interface User {
     isActive: boolean;
 }
 
+export const registerSchema = z.object({
+    username: z.string().min(1),
+    email: z.string().email(),
+    password: z.string().min(6),
+    role: z.nativeEnum(UserRole).optional(),
+});
+
+export type RegisterData = z.infer<typeof registerSchema>;
+
 export interface AuthResponse {
     success: boolean;
     data: {
@@ -30,7 +39,6 @@ export interface AuthResponse {
         user: User;
     };
 }
-
 export const authService = {
     login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
         const response = await api.post<AuthResponse>('/auth/login', credentials);
@@ -82,8 +90,7 @@ export const authService = {
         return response.data.data;
     },
 
-    register: async (data: any): Promise<any> => {
-        const response = await api.post('/auth/register', data);
+    register: async (data: RegisterData): Promise<AuthResponse> => {
+        const response = await api.post<AuthResponse>('/auth/register', data);
         return response.data;
-    }
-};
+    }};

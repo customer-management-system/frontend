@@ -40,6 +40,14 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { updateOrderSchema, UpdateOrderRequest, Product } from "./schema";
 import { ordersService } from "./ordersService";
 
+interface ApiOrderItem {
+    id: number;
+    product?: { id: number; name: string };
+    quantity: number;
+    unitPrice?: number;
+    unit_price?: number;
+}
+
 interface UpdateOrderDialogProps {
     orderId: number;
     onSuccess?: () => void;
@@ -74,7 +82,7 @@ export function UpdateOrderDialog({ orderId, onSuccess }: UpdateOrderDialogProps
             try {
                 const response = await ordersService.getById(orderId);
                 if (response.success && response.data) {
-                    const existingItems = response.data.items.map((item: any) => ({
+                    const existingItems = response.data.items.map((item: ApiOrderItem) => ({
                         id: item.id,
                         product_id: item.product?.id,
                         product_name: item.product?.name || 'منتج',
@@ -142,7 +150,6 @@ export function UpdateOrderDialog({ orderId, onSuccess }: UpdateOrderDialogProps
     const handleAddProduct = (product: Product) => {
         append({
             product_id: product.id,
-            // @ts-ignore
             product_name: product.name,
             quantity: 1,
             unit_price: product.default_price,
@@ -242,7 +249,6 @@ export function UpdateOrderDialog({ orderId, onSuccess }: UpdateOrderDialogProps
                                 {fields.map((field, index) => (
                                     <div key={field.id} className="flex gap-4 items-end border p-3 rounded-md bg-muted/20">
                                         <div className="flex-1">
-                                            {/* @ts-ignore */}
                                             <span className="text-sm font-medium">{field.product_name || "منتج"}</span>
                                         </div>
 

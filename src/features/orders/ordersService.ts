@@ -1,5 +1,5 @@
 import api from "@/lib/axios";
-import { CreateOrderRequest, ProductResponse } from "./schema";
+import { CreateOrderRequest, ProductResponse, UpdateOrderRequest } from "./schema";
 
 function toApiPayload(data: CreateOrderRequest) {
     return {
@@ -40,7 +40,7 @@ export const ordersService = {
         return response.data;
     },
 
-    update: async (id: number, data: any) => {
+    update: async (id: number, data: UpdateOrderRequest) => {
         const response = await api.put(`/orders/${id}`, data);
         return response.data;
     },

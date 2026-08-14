@@ -90,12 +90,21 @@ export interface DeletedHistoryResponse {
     };
 }
 
+export interface OrderItemChange {
+    quantity: number;
+    unitPrice: number;
+}
+
 export interface UpdateHistoryRecord {
     id: number;
     type: 'ORDER' | 'PAYMENT';
     entity_id: number;
     description: string;
-    changes: Record<string, any>;
+    changes: Record<string, unknown> & {
+        items?: OrderItemChange[];
+        amount?: { old: unknown; new: unknown };
+        method?: { old: unknown; new: unknown };
+    };
     updated_by: {
         id: number;
         username: string;

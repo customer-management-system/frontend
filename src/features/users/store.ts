@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { User, UsersResponse } from './schema';
 import { usersService } from './usersService';
+import { getErrorMessage } from '@/lib/getErrorMessage';
 
 interface UsersState {
     users: User[];
@@ -48,8 +49,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
                 meta: response.data.pagination,
                 isLoading: false
             });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch users', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to fetch users'), isLoading: false });
         }
     },
 
@@ -59,8 +60,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
             await usersService.create(userData);
             const { meta } = get();
             await get().fetchUsers(meta?.page || 1, meta?.limit || 10);
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to add user', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to add user'), isLoading: false });
             throw error;
         }
     },
@@ -81,8 +82,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
 
             const { meta } = get();
             await get().fetchUsers(meta?.page || 1, meta?.limit || 10);
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to update user', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to update user'), isLoading: false });
             throw error;
         }
     },
@@ -93,8 +94,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
             await usersService.delete(id);
             const { meta } = get();
             await get().fetchUsers(meta?.page || 1, meta?.limit || 10);
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to deactivate user', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to deactivate user'), isLoading: false });
             throw error;
         }
     },
@@ -105,8 +106,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
             await usersService.restore(id);
             const { meta } = get();
             await get().fetchUsers(meta?.page || 1, meta?.limit || 10);
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to reactivate user', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to reactivate user'), isLoading: false });
             throw error;
         }
     },
@@ -116,8 +117,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
         try {
             const user = await usersService.getById(id);
             set({ currentUser: user, isLoading: false });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch user details', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error, 'Failed to fetch user details'), isLoading: false });
         }
     },
 }));

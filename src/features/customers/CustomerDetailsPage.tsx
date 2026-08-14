@@ -658,7 +658,7 @@ export default function CustomerDetailsPage() {
                                                     <td className="p-4 align-middle text-xs">
                                                         {record.type === 'ORDER' && record.changes?.items ? (
                                                             <div className="space-y-1">
-                                                                {record.changes.items.map((item: any, idx: number) => (
+                                                                {record.changes.items.map((item, idx) => (
                                                                     <div key={idx} className="bg-muted/50 rounded px-2 py-1">
                                                                         الكمية: {item.quantity} | السعر: {item.unitPrice}
                                                                     </div>
@@ -668,12 +668,12 @@ export default function CustomerDetailsPage() {
                                                             <div className="space-y-1">
                                                                 {record.changes?.amount && (
                                                                     <div className="bg-muted/50 rounded px-2 py-1">
-                                                                        المبلغ: {record.changes.amount.old} → {record.changes.amount.new}
+                                                                        المبلغ: {String(record.changes.amount.old)} → {String(record.changes.amount.new)}
                                                                     </div>
                                                                 )}
                                                                 {record.changes?.method && record.changes.method.old !== record.changes.method.new && (
                                                                     <div className="bg-muted/50 rounded px-2 py-1">
-                                                                        الطريقة: {record.changes.method.old} → {record.changes.method.new}
+                                                                        الطريقة: {String(record.changes.method.old)} → {String(record.changes.method.new)}
                                                                     </div>
                                                                 )}
                                                             </div>

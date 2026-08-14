@@ -26,8 +26,20 @@ export function CustomerStatementReport({ customer, financialHistory, startDate,
     // Sort oldest to newest for chronological statement printing
     const sortedRecords = [...activeRecords].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    let totalDebit = 0; // مدين (عليه)
-    let totalCredit = 0; // دائن (له)
+    const statementRows = sortedRecords.map((record) => {
+        const isPayment = record.type === 'PAYMENT';
+        const isOrder = record.type === 'ORDER';
+        const debit = isOrder ? record.amount : 0;
+        const credit = isPayment ? record.amount : 0;
+        const bal = record.runningBalance;
+        const balCredit = bal < 0 ? Math.abs(bal) : 0;
+        const balDebit = bal > 0 ? bal : 0;
+
+        return { record, isPayment, isOrder, debit, credit, balCredit, balDebit };
+    });
+
+    const totalDebit = statementRows.reduce((sum, row) => sum + row.debit, 0);
+    const totalCredit = statementRows.reduce((sum, row) => sum + row.credit, 0);
 
     return (
         <div className="hidden print-statement-container w-full bg-white text-black p-4 text-xs xl:text-sm" dir="rtl">
@@ -80,20 +92,7 @@ export function CustomerStatementReport({ customer, financialHistory, startDate,
                     {/* Previous Balance Row could go here if we tracked it historically.
                         For now, assuming runningBalance on first record gives context, or we just rely on runningBalance column.*/}
 
-                    {sortedRecords.map((record) => {
-                        const isPayment = record.type === 'PAYMENT';
-                        const isOrder = record.type === 'ORDER';
-                        
-                        const debit = isOrder ? record.amount : 0;
-                        const credit = isPayment ? record.amount : 0;
-                        
-                        totalDebit += debit;
-                        totalCredit += credit;
-
-                        const bal = record.runningBalance;
-                        const balCredit = bal < 0 ? Math.abs(bal) : 0;
-                        const balDebit = bal > 0 ? bal : 0;
-
+                    {statementRows.map(({ record, isPayment, isOrder, debit, credit, balCredit, balDebit }) => {
                         return (
                             <tr key={record.id} className="hover:bg-gray-50">
                                 <td className="border border-black p-2 font-semibold text-green-700">{balCredit > 0 ? balCredit.toLocaleString() : '0'}</td>

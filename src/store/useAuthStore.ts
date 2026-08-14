@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { User, authService, LoginCredentials } from '@/features/auth/authService';
+import { getErrorMessage } from '@/lib/getErrorMessage';
 
 interface AuthState {
     user: User | null;
@@ -35,10 +36,10 @@ export const useAuthStore = create<AuthState>((set) => ({
                 isAuthenticated: true,
                 isLoading: false
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             set({
                 isLoading: false,
-                error: error.response?.data?.message || 'Login failed'
+                error: getErrorMessage(error, 'Login failed')
             });
             throw error;
         }
