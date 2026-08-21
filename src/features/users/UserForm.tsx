@@ -41,14 +41,13 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
 
     const onSubmit = async (values: UserFormValues) => {
         try {
-            // Remove password from payload if it's empty during an update
-            const payload = { ...values };
+            const { is_active: _isActive, ...payload } = values;
             if (initialData && !payload.password) {
                 delete payload.password;
             }
 
             if (initialData?.id) {
-                await updateUser(initialData.id, payload as Partial<User>);
+                await updateUser(initialData.id, values as Partial<User>);
                 toast.success("تم تحديث بيانات المستخدم بنجاح");
             } else {
                 await addUser(payload as User);

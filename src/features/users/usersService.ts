@@ -15,7 +15,8 @@ export const usersService = {
     },
 
     create: async (data: Partial<User>): Promise<User> => {
-        const response = await api.post<UserResponse>('/auth/register', data);
+        const { is_active: _isActive, ...payload } = data;
+        const response = await api.post<UserResponse>('/auth/register', payload);
         return response.data.data;
     },
 

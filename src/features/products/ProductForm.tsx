@@ -43,7 +43,8 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                 await updateProduct(initialData.id, values as Partial<Product>);
                 toast.success("تم تحديث بيانات المنتج بنجاح");
             } else {
-                await addProduct(values as Product);
+                const { is_active: _isActive, ...createValues } = values;
+                await addProduct(createValues as Product);
                 toast.success("تم إضافة المنتج بنجاح");
             }
             onSuccess?.();

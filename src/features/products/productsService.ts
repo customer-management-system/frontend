@@ -15,7 +15,8 @@ export const productsService = {
     },
 
     create: async (data: Partial<Product>): Promise<Product> => {
-        const response = await api.post<ProductResponse>('/products', data);
+        const { is_active: _isActive, ...payload } = data;
+        const response = await api.post<ProductResponse>('/products', payload);
         return response.data.data;
     },
 
