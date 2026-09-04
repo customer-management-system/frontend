@@ -82,12 +82,12 @@ export function UpdateOrderDialog({ orderId, onSuccess }: UpdateOrderDialogProps
             try {
                 const response = await ordersService.getById(orderId);
                 if (response.success && response.data) {
-                    const existingItems = response.data.items.map((item: ApiOrderItem) => ({
+                    const existingItems = response.data.items.map((item: ApiOrderItem & { product_id?: number; product_name?: string }) => ({
                         id: item.id,
-                        product_id: item.product?.id,
-                        product_name: item.product?.name || 'منتج',
+                        product_id: item.product_id ?? item.product?.id,
+                        product_name: item.product_name || item.product?.name || 'منتج',
                         quantity: item.quantity,
-                        unit_price: item.unitPrice || item.unit_price, // handle camelCase or snake_case depends on API output
+                        unit_price: Number(item.unit_price ?? item.unitPrice ?? 0),
                     }));
                     replace(existingItems);
                 }
@@ -126,17 +126,7 @@ export function UpdateOrderDialog({ orderId, onSuccess }: UpdateOrderDialogProps
 
     const onSubmit = async (data: UpdateOrderRequest) => {
         try {
-            // Ensure data is formatted exactly as needed
-            const payload = {
-                items: data.items.map(item => ({
-                    id: item.id, // Will be undefined for new items
-                    product_id: item.id ? undefined : item.product_id, // Only send product_id for new items if applicable
-                    quantity: item.quantity,
-                    unit_price: item.unit_price,
-                }))
-            };
-
-            const response = await ordersService.update(orderId, payload);
+            const response = await ordersService.update(orderId, data);
             if (response.success) {
                 setOpen(false);
                 if (onSuccess) onSuccess();

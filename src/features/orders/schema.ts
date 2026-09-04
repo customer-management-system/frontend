@@ -42,11 +42,13 @@ export type OrderItemRequest = z.infer<typeof orderItemSchema>;
 export type PaymentRequest = z.infer<typeof paymentRequestSchema>;
 
 export const updateOrderItemSchema = z.object({
-    id: z.number().optional(), // Existing item ID or new if missing
+    id: z.number().optional(),
     product_id: z.number().optional(),
     product_name: z.string().optional(),
     quantity: z.number().min(1, "Quantity must be at least 1"),
     unit_price: z.number().min(0, "Price must be non-negative"),
+}).refine((item) => Boolean(item.id || item.product_id), {
+    message: "Each item must have an id or product_id",
 });
 
 export const updateOrderSchema = z.object({
@@ -59,6 +61,7 @@ export interface OrderItem {
     id: number;
     product_id: number;
     product_name: string;
+    product?: { id: number; name: string; sku?: string };
     quantity: number;
     unit_price: string | number;
     subtotal: string | number;
@@ -79,6 +82,7 @@ export interface OrderInvoice {
 export interface OrderData {
     id: number;
     customer_id: number;
+    customer?: { id: number; name: string; phone?: string };
     total_amount: string | number;
     paid_amount: string | number;
     balance: string | number;

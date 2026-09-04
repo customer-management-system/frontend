@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
     Dialog,
@@ -21,6 +22,7 @@ interface ExtraChargeDialogProps {
 export function ExtraChargeDialog({ customerId, onSuccess }: ExtraChargeDialogProps) {
     const [open, setOpen] = useState(false);
     const [amount, setAmount] = useState<string>("");
+    const [notes, setNotes] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -39,11 +41,13 @@ export function ExtraChargeDialog({ customerId, onSuccess }: ExtraChargeDialogPr
 
             await ordersService.extraCharge({
                 customer_id: customerId,
-                amount: numAmount
+                amount: numAmount,
+                ...(notes.trim() ? { notes: notes.trim() } : {}),
             });
 
             setOpen(false);
             setAmount("");
+            setNotes("");
             if (onSuccess) {
                 onSuccess();
             }
@@ -60,6 +64,7 @@ export function ExtraChargeDialog({ customerId, onSuccess }: ExtraChargeDialogPr
             setOpen(val);
             if (!val) {
                 setAmount("");
+                setNotes("");
                 setError(null);
             }
         }}>
@@ -85,6 +90,16 @@ export function ExtraChargeDialog({ customerId, onSuccess }: ExtraChargeDialogPr
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             required
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="notes">ملاحظات (اختياري)</Label>
+                        <Textarea
+                            id="notes"
+                            placeholder="اكتب ملاحظة عن إشعار الإضافة..."
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            rows={3}
                         />
                     </div>
                     {error && <p className="text-sm font-medium text-red-500">{error}</p>}

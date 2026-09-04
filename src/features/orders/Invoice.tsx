@@ -31,7 +31,7 @@ export function Invoice({ order, customerName }: InvoiceProps) {
                     <span>التاريخ: {format(new Date(order.created_at), 'yyyy/MM/dd')}</span>
                 </div>
                 <div className="text-right w-1/3 font-bold text-lg flex flex-col items-start">
-                    <span>كود العميل: {order.customer_id}</span>
+                    <span>كود العميل: {order.customer_id || order.customer?.id}</span>
                 </div>
             </div>
 
@@ -59,7 +59,7 @@ export function Invoice({ order, customerName }: InvoiceProps) {
                     {(order.items ?? []).map((item, index) => (
                         <tr key={item.id} className="border-b-2 border-black">
                             <td className="border-x-2 border-black p-2 text-center">{index + 1}</td>
-                            <td className="border-x-2 border-black p-2 text-center">{item.product_name}</td>
+                            <td className="border-x-2 border-black p-2 text-center">{item.product_name || item.product?.name || ''}</td>
                             <td className="border-x-2 border-black p-2 text-center">الكيلو</td>
                             <td className="border-x-2 border-black p-2 text-center">{item.quantity}</td>
                             <td className="border-x-2 border-black p-2 text-center">{Number(item.unit_price).toFixed(2)}</td>

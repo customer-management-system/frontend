@@ -8,12 +8,16 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { CreateOrderDialog } from "../orders/CreateOrderDialog";
 import { ExtraChargeDialog } from "../orders/ExtraChargeDialog";
+import { ReturnDialog } from "../returns/ReturnDialog";
 import { Invoice } from "../orders/Invoice";
 import { MakePaymentDialog } from "../payments/MakePaymentDialog";
 import { UpdatePaymentDialog } from "../payments/UpdatePaymentDialog";
 import { ReversePaymentDialog } from "../payments/ReversePaymentDialog";
 import { PaymentMethod, OrderData } from "../orders/schema";
 import { PaymentInvoice, PaymentData } from "../payments/PaymentInvoice";
+import { ReturnSlip } from "../returns/ReturnSlip";
+import { ReturnData } from "../returns/schema";
+import { returnsService } from "../returns/returnsService";
 import { CustomerStatementReport } from "./CustomerStatementReport";
 import { UpdateOrderDialog } from "../orders/UpdateOrderDialog";
 import { ordersService } from "../orders/ordersService";
@@ -35,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
 import { triggerPrint } from "@/lib/printManager";
 import { toast } from "react-toastify";
+import { AuditChangesDisplay, DeletedRecordDetails } from "@/components/shared/AuditChangesDisplay";
 
 export default function CustomerDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -56,6 +61,8 @@ export default function CustomerDetailsPage() {
     const [isPrintingInfo, setIsPrintingInfo] = useState<number | null>(null);
     const [paymentToPrint, setPaymentToPrint] = useState<PaymentData | null>(null);
     const [isPrintingPayment, setIsPrintingPayment] = useState<number | null>(null);
+    const [returnToPrint, setReturnToPrint] = useState<ReturnData | null>(null);
+    const [isPrintingReturn, setIsPrintingReturn] = useState<number | null>(null);
     const [isPrintingStatement, setIsPrintingStatement] = useState(false);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -128,6 +135,28 @@ export default function CustomerDetailsPage() {
         }
     };
 
+    const handlePrintReturn = async (returnId: number) => {
+        try {
+            setIsPrintingReturn(returnId);
+            const response = await returnsService.getById(returnId);
+            if (response.success) {
+                setReturnToPrint(response.data);
+                requestAnimationFrame(() => {
+                    triggerPrint({
+                        printClass: 'printing-invoice',
+                        onAfterPrint: () => {
+                            setReturnToPrint(null);
+                            setIsPrintingReturn(null);
+                        },
+                    });
+                });
+            }
+        } catch {
+            toast.error('فشل تحميل بيانات المرتجع');
+            setIsPrintingReturn(null);
+        }
+    };
+
     const runAction = async (actionKey: string, action: () => Promise<void>, successMessage: string) => {
         if (actionLoading) return;
         setActionLoading(actionKey);
@@ -188,6 +217,16 @@ export default function CustomerDetailsPage() {
                 <h1 className="text-2xl font-bold">{currentCustomer.name}</h1>
                 <div className="mr-auto flex gap-2">
                     <ExtraChargeDialog
+                        customerId={parseInt(id!)}
+                        onSuccess={() => {
+                            if (id) {
+                                const customerId = parseInt(id);
+                                fetchCustomerDetails(customerId);
+                                fetchFinancialHistory(customerId);
+                            }
+                        }}
+                    />
+                    <ReturnDialog
                         customerId={parseInt(id!)}
                         onSuccess={() => {
                             if (id) {
@@ -359,13 +398,15 @@ export default function CustomerDetailsPage() {
                                                     <span className={`px-2 py-1 rounded text-xs font-medium ${record.status === 'deleted' ? 'bg-red-100 text-red-800' :
                                                         record.status === 'reversed' ? 'bg-amber-100 text-amber-800' :
                                                             record.type === 'PAYMENT' ? 'bg-green-100 text-green-800' :
-                                                                record.type === 'ORDER' ? 'bg-blue-100 text-blue-800' :
-                                                                    'bg-gray-100 text-gray-800'
+                                                                record.type === 'RETURN' ? 'bg-teal-100 text-teal-800' :
+                                                                    record.type === 'ORDER' ? 'bg-blue-100 text-blue-800' :
+                                                                        'bg-gray-100 text-gray-800'
                                                         }`}>
                                                         {record.status === 'deleted' ? 'محذوف' :
                                                             record.status === 'reversed' ? 'مسترجع (معكوس)' :
                                                                 record.type === 'PAYMENT' ? 'دفعة' :
-                                                                    record.type === 'ORDER' ? 'طلب' : record.type}
+                                                                    record.type === 'RETURN' ? 'مرتجع' :
+                                                                        record.type === 'ORDER' ? 'طلب' : record.type}
                                                     </span>
                                                 </td>
                                                 <td className="p-4 align-middle">
@@ -379,6 +420,11 @@ export default function CustomerDetailsPage() {
                                                 <td className="p-4 align-middle">
                                                     <td className="p-4 align-middle">
                                                         {record.type === 'ORDER' && record.quantity && (
+                                                            <div className="text-xs font-semibold mb-1">
+                                                                العدد الكلي: {record.quantity}
+                                                            </div>
+                                                        )}
+                                                        {record.type === 'RETURN' && record.quantity && (
                                                             <div className="text-xs font-semibold mb-1">
                                                                 العدد الكلي: {record.quantity}
                                                             </div>
@@ -402,13 +448,13 @@ export default function CustomerDetailsPage() {
                                                     </td>
                                                 </td>
                                                 <td className={`p-4 align-middle font-medium ${record.status === 'deleted' || record.status === 'reversed' ? 'text-gray-400 line-through' :
-                                                    record.type === 'PAYMENT' ? 'text-green-600' : 'text-blue-600'
+                                                    record.type === 'PAYMENT' || record.type === 'RETURN' ? 'text-green-600' : 'text-blue-600'
                                                     }`}>
                                                     {formatCurrency(record.amount)}
                                                 </td>
                                                 <td className="p-4 align-middle text-left font-mono">{formatCurrency(record.runningBalance)}</td>
                                                 <td className="p-4 align-middle text-center">
-                                                    {(record.type === 'PAYMENT' || record.type === 'ORDER') && (
+                                                    {(record.type === 'PAYMENT' || record.type === 'ORDER' || record.type === 'RETURN') && (
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
                                                                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -471,7 +517,7 @@ export default function CustomerDetailsPage() {
                                                                         </DropdownMenuItem>
                                                                     </>
                                                                 )}
-                                                                {record.type === 'PAYMENT' && record.status === 'deleted' && (
+                                                                {record.type === 'PAYMENT' && record.status === 'deleted' && user?.role === UserRole.ADMIN && (
                                                                     <DropdownMenuItem
                                                                         className="text-green-600 focus:text-green-600 cursor-pointer"
                                                                         disabled={actionLoading === `restore-payment-${record.referenceId}`}
@@ -525,7 +571,7 @@ export default function CustomerDetailsPage() {
                                                                         </DropdownMenuItem>
                                                                     </>
                                                                 )}
-                                                                {record.type === 'ORDER' && record.status === 'deleted' && (
+                                                                {record.type === 'ORDER' && record.status === 'deleted' && user?.role === UserRole.ADMIN && (
                                                                     <DropdownMenuItem
                                                                         className="text-green-600 focus:text-green-600 cursor-pointer"
                                                                         disabled={actionLoading === `restore-order-${record.referenceId}`}
@@ -540,6 +586,50 @@ export default function CustomerDetailsPage() {
                                                                     >
                                                                         <RefreshCcw className="mr-2 h-4 w-4" />
                                                                         <span>استعادة الطلب</span>
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                                {record.type === 'RETURN' && record.status !== 'deleted' && (
+                                                                    <>
+                                                                        <DropdownMenuItem
+                                                                            onClick={() => handlePrintReturn(record.referenceId)}
+                                                                            disabled={isPrintingReturn === record.referenceId}
+                                                                            className="cursor-pointer"
+                                                                        >
+                                                                            <Printer className="mr-2 h-4 w-4" />
+                                                                            <span>{isPrintingReturn === record.referenceId ? "جاري التجهيز..." : "طباعة إشعار المرتجع"}</span>
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem
+                                                                            className="text-red-600 focus:text-red-600 cursor-pointer"
+                                                                            disabled={actionLoading === `delete-return-${record.referenceId}`}
+                                                                            onClick={async () => {
+                                                                                if (!confirm('هل أنت متأكد من حذف هذا المرتجع نهائياً؟')) return;
+                                                                                await runAction(
+                                                                                    `delete-return-${record.referenceId}`,
+                                                                                    () => returnsService.delete(record.referenceId),
+                                                                                    'تم حذف المرتجع بنجاح'
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            <Trash className="mr-2 h-4 w-4" />
+                                                                            <span>حذف المرتجع</span>
+                                                                        </DropdownMenuItem>
+                                                                    </>
+                                                                )}
+                                                                {record.type === 'RETURN' && record.status === 'deleted' && user?.role === UserRole.ADMIN && (
+                                                                    <DropdownMenuItem
+                                                                        className="text-green-600 focus:text-green-600 cursor-pointer"
+                                                                        disabled={actionLoading === `restore-return-${record.referenceId}`}
+                                                                        onClick={async () => {
+                                                                            if (!confirm('هل أنت متأكد من استعادة هذا المرتجع؟')) return;
+                                                                            await runAction(
+                                                                                `restore-return-${record.referenceId}`,
+                                                                                () => returnsService.restore(record.referenceId),
+                                                                                'تم استعادة المرتجع بنجاح'
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        <RefreshCcw className="mr-2 h-4 w-4" />
+                                                                        <span>استعادة المرتجع</span>
                                                                     </DropdownMenuItem>
                                                                 )}
                                                             </DropdownMenuContent>
@@ -597,7 +687,15 @@ export default function CustomerDetailsPage() {
                                                             )}
                                                         </div>
                                                     </td>
-                                                    <td className="p-4 align-middle">{record.description}</td>
+                                                    <td className="p-4 align-middle">
+                                                        <DeletedRecordDetails
+                                                            type={record.type}
+                                                            description={record.description}
+                                                            items={record.items}
+                                                            method={record.method}
+                                                            quantity={record.quantity}
+                                                        />
+                                                    </td>
                                                     <td className="p-4 align-middle font-bold text-red-600">
                                                         {formatCurrency(record.amount)}
                                                     </td>
@@ -650,36 +748,22 @@ export default function CustomerDetailsPage() {
                                                             <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">دفعة</span>
                                                         ) : record.type === 'ORDER' ? (
                                                             <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">طلب</span>
+                                                        ) : record.type === 'RETURN' ? (
+                                                            <span className="bg-teal-100 text-teal-700 px-2 py-1 rounded text-xs">مرتجع</span>
                                                         ) : (
                                                             <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">{record.type}</span>
                                                         )}
+                                                        {record.action && record.action !== 'UPDATE' && (
+                                                            <span className="mr-2 bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs">
+                                                                {record.action === 'DELETE' ? 'حذف' :
+                                                                    record.action === 'REVERSE' ? 'عكس' :
+                                                                        record.action === 'VOID' ? 'إلغاء' : record.action}
+                                                            </span>
+                                                        )}
                                                     </td>
                                                     <td className="p-4 align-middle">{record.description}</td>
-                                                    <td className="p-4 align-middle text-xs">
-                                                        {record.type === 'ORDER' && record.changes?.items ? (
-                                                            <div className="space-y-1">
-                                                                {record.changes.items.map((item, idx) => (
-                                                                    <div key={idx} className="bg-muted/50 rounded px-2 py-1">
-                                                                        الكمية: {item.quantity} | السعر: {item.unitPrice}
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        ) : record.type === 'PAYMENT' ? (
-                                                            <div className="space-y-1">
-                                                                {record.changes?.amount && (
-                                                                    <div className="bg-muted/50 rounded px-2 py-1">
-                                                                        المبلغ: {String(record.changes.amount.old)} → {String(record.changes.amount.new)}
-                                                                    </div>
-                                                                )}
-                                                                {record.changes?.method && record.changes.method.old !== record.changes.method.new && (
-                                                                    <div className="bg-muted/50 rounded px-2 py-1">
-                                                                        الطريقة: {String(record.changes.method.old)} → {String(record.changes.method.new)}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-muted-foreground">-</span>
-                                                        )}
+                                                    <td className="p-4 align-middle text-xs max-w-md">
+                                                        <AuditChangesDisplay changes={record.changes} />
                                                     </td>
                                                     <td className="p-4 align-middle font-medium">
                                                         {record.updated_by?.username || '-'}
@@ -717,6 +801,12 @@ export default function CustomerDetailsPage() {
             {paymentToPrint && (
                 <div className="hidden print-overlay-container bg-white z-[9999]">
                     <PaymentInvoice payment={paymentToPrint} />
+                </div>
+            )}
+
+            {returnToPrint && currentCustomer && (
+                <div className="hidden print-overlay-container bg-white z-[9999]" dir="rtl">
+                    <ReturnSlip returnRecord={returnToPrint} customerName={currentCustomer.name} />
                 </div>
             )}
 

@@ -29,13 +29,14 @@ export function CustomerStatementReport({ customer, financialHistory, startDate,
     const statementRows = sortedRecords.map((record) => {
         const isPayment = record.type === 'PAYMENT';
         const isOrder = record.type === 'ORDER';
+        const isReturn = record.type === 'RETURN';
         const debit = isOrder ? record.amount : 0;
-        const credit = isPayment ? record.amount : 0;
+        const credit = isPayment || isReturn ? record.amount : 0;
         const bal = record.runningBalance;
         const balCredit = bal < 0 ? Math.abs(bal) : 0;
         const balDebit = bal > 0 ? bal : 0;
 
-        return { record, isPayment, isOrder, debit, credit, balCredit, balDebit };
+        return { record, isPayment, isOrder, isReturn, debit, credit, balCredit, balDebit };
     });
 
     const totalDebit = statementRows.reduce((sum, row) => sum + row.debit, 0);
@@ -92,7 +93,7 @@ export function CustomerStatementReport({ customer, financialHistory, startDate,
                     {/* Previous Balance Row could go here if we tracked it historically.
                         For now, assuming runningBalance on first record gives context, or we just rely on runningBalance column.*/}
 
-                    {statementRows.map(({ record, isPayment, isOrder, debit, credit, balCredit, balDebit }) => {
+                    {statementRows.map(({ record, isPayment, isOrder, isReturn, debit, credit, balCredit, balDebit }) => {
                         return (
                             <tr key={record.id} className="hover:bg-gray-50">
                                 <td className="border border-black p-2 font-semibold text-green-700">{balCredit > 0 ? balCredit.toLocaleString() : '0'}</td>
@@ -106,9 +107,11 @@ export function CustomerStatementReport({ customer, financialHistory, startDate,
                                 
                                 <td className="border border-black p-2 text-right">
                                     <div className="font-bold flex justify-between">
-                                        <span>{isPayment ? 'استلام نقديه' : 'مبيعات'} - {record.description}</span>
+                                        <span>
+                                            {isReturn ? 'مرتجع' : isPayment ? 'استلام نقديه' : 'مبيعات'} - {record.description}
+                                        </span>
                                     </div>
-                                    {isOrder && record.items && record.items.length > 0 && (
+                                    {(isOrder || isReturn) && record.items && record.items.length > 0 && (
                                         <div className="mt-1 text-xs">
                                             <ul className="list-none m-0 p-0 text-gray-700">
                                                 {record.items.map((item, idx) => (

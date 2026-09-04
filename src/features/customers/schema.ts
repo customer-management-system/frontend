@@ -22,7 +22,7 @@ export type Customer = z.infer<typeof customerSchema> & {
 export interface FinancialRecord {
     id: number;
     date: string;
-    type: 'ORDER' | 'PAYMENT' | 'REFUND'; // inferred from data
+    type: 'ORDER' | 'PAYMENT' | 'RETURN';
     status?: string; // e.g. 'completed', 'deleted', 'reversed'
     referenceId: number;
     description: string;
@@ -47,6 +47,7 @@ export interface FinancialHistoryResponse {
         summary: {
             totalOrders: number;
             totalPaid: number;
+            totalReturns?: number;
             currentBalance: number;
         };
         history: FinancialRecord[];
@@ -55,7 +56,7 @@ export interface FinancialHistoryResponse {
 
 export interface DeletedHistoryRecord {
     id: number;
-    type: 'ORDER' | 'PAYMENT';
+    type: 'ORDER' | 'PAYMENT' | 'RETURN';
     description: string;
     amount: number;
     method?: string;
@@ -83,28 +84,54 @@ export interface DeletedHistoryResponse {
         summary: {
             totalDeletedOrders: number;
             totalDeletedPayments: number;
+            totalDeletedReturns?: number;
             deletedOrdersCount: number;
             deletedPaymentsCount: number;
+            deletedReturnsCount?: number;
         };
         history: DeletedHistoryRecord[];
     };
 }
 
-export interface OrderItemChange {
+export interface AuditItemSnapshot {
+    id?: number;
+    productId?: number;
+    productName: string;
     quantity: number;
     unitPrice: number;
+    subtotal?: number;
+}
+
+export interface AuditItemDiff {
+    added: AuditItemSnapshot[];
+    removed: AuditItemSnapshot[];
+    modified: Array<{
+        id?: number;
+        productName: string;
+        changes: Record<string, { old: unknown; new: unknown }>;
+    }>;
+    legacy?: AuditItemSnapshot[];
+}
+
+export interface FormattedAuditChanges {
+    fields: Record<string, { old: unknown; new: unknown }>;
+    items: AuditItemDiff | null;
+    snapshot: {
+        totalAmount?: number;
+        amount?: number;
+        method?: string;
+        notes?: string | null;
+        items?: AuditItemSnapshot[];
+    } | null;
 }
 
 export interface UpdateHistoryRecord {
     id: number;
-    type: 'ORDER' | 'PAYMENT';
+    type: 'ORDER' | 'PAYMENT' | 'RETURN';
+    action?: 'UPDATE' | 'DELETE' | 'REVERSE' | 'VOID';
     entity_id: number;
     description: string;
-    changes: Record<string, unknown> & {
-        items?: OrderItemChange[];
-        amount?: { old: unknown; new: unknown };
-        method?: { old: unknown; new: unknown };
-    };
+    changes: FormattedAuditChanges;
     updated_by: {
         id: number;
         username: string;
@@ -121,6 +148,7 @@ export interface UpdateHistoryResponse {
             totalUpdates: number;
             orderUpdates: number;
             paymentUpdates: number;
+            returnUpdates?: number;
         };
         history: UpdateHistoryRecord[];
     };
