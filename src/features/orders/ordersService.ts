@@ -32,11 +32,21 @@ function normalizeOrder(order: Record<string, unknown> & {
 }
 
 function toApiPayload(data: CreateOrderRequest) {
+    const payment =
+        data.payment?.amount !== undefined
+            ? {
+                amount: data.payment.amount,
+                method: data.payment.method,
+                ...(data.payment.reference_number ? { reference_number: data.payment.reference_number } : {}),
+                ...(data.payment.notes ? { notes: data.payment.notes } : {}),
+            }
+            : undefined;
+
     return {
         customer_id: data.customer_id,
-        discount_amount: data.discount_amount,
-        discount_type: data.discount_type,
-        payment: data.payment,
+        ...(data.discount_amount !== undefined ? { discount_amount: data.discount_amount } : {}),
+        ...(data.discount_type !== undefined ? { discount_type: data.discount_type } : {}),
+        ...(payment ? { payment } : {}),
         items: data.items.map(({ product_id, quantity, unit_price, discount_amount, discount_type }) => ({
             product_id,
             quantity,

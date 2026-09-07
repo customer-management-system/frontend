@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
 import { loginSchema, LoginCredentials } from './authService';
+import { APP_NAME } from '@/lib/appConfig';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Lock, Mail, Loader2 } from 'lucide-react';
@@ -43,7 +44,7 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4" dir="rtl">
             <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-primary mb-2">ABAQ LEARNING</h1>
+                    <h1 className="text-lg font-bold text-primary mb-2 leading-relaxed">{APP_NAME}</h1>
                     <p className="text-gray-500">سجل الدخول للمتابعة</p>
                 </div>
 

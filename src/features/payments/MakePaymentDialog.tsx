@@ -33,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createPaymentSchema, CreatePaymentRequest } from "./schema";
 import { PaymentMethod } from "../orders/schema";
 import { paymentsService } from "./paymentsService";
+import { numberInputValue, parseOptionalFloat } from "@/lib/formNumberInput";
 import { PaymentInvoice, PaymentData } from "./PaymentInvoice";
 import { PrintOverlay } from "@/components/shared/PrintOverlay";
 
@@ -51,7 +52,7 @@ export function MakePaymentDialog({ customerId, onSuccess }: MakePaymentDialogPr
         resolver: zodResolver(createPaymentSchema),
         defaultValues: {
             customer_id: customerId,
-            amount: 0,
+            amount: undefined,
             payment_method: PaymentMethod.CASH,
             reference_number: "",
             notes: "",
@@ -160,8 +161,8 @@ export function MakePaymentDialog({ customerId, onSuccess }: MakePaymentDialogPr
                                         <Input
                                             type="number"
                                             placeholder="أدخل المبلغ..."
-                                            {...field}
-                                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                            value={numberInputValue(field.value)}
+                                            onChange={(e) => field.onChange(parseOptionalFloat(e.target.value))}
                                         />
                                     </FormControl>
                                     <FormMessage />

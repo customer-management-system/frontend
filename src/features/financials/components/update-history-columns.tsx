@@ -3,7 +3,9 @@ import { UpdateHistoryItem } from '../schema';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import { Edit3, ArrowLeft } from 'lucide-react';
+import { Edit3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { AuditChangesDisplay } from '@/components/shared/AuditChangesDisplay';
 
 export const updateHistoryColumns: ColumnDef<UpdateHistoryItem>[] = [
     {
@@ -18,10 +20,28 @@ export const updateHistoryColumns: ColumnDef<UpdateHistoryItem>[] = [
         header: 'النوع',
         cell: ({ row }) => {
             const type = row.original.entity_type;
+            const action = row.original.action;
+            const typeLabel =
+                type === 'Order' ? 'طلب' :
+                type === 'Return' ? 'مرتجع' :
+                'دفعة';
+            const actionLabel =
+                action === 'DELETE' ? 'حذف' :
+                action === 'REVERSE' ? 'عكس' :
+                action === 'VOID' ? 'إلغاء' :
+                'تعديل';
+
             return (
-                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                    {type === 'Order' ? 'طلب' : 'دفعة'}
-                </Badge>
+                <div className="flex flex-wrap gap-1">
+                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                        {typeLabel}
+                    </Badge>
+                    {action && action !== 'UPDATE' && (
+                        <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
+                            {actionLabel}
+                        </Badge>
+                    )}
+                </div>
             );
         },
     },
@@ -33,34 +53,30 @@ export const updateHistoryColumns: ColumnDef<UpdateHistoryItem>[] = [
         },
     },
     {
+        id: 'customer',
+        header: 'العميل',
+        cell: ({ row }) => {
+            const customer = row.original.customer;
+            if (!customer) {
+                return <span className="text-muted-foreground text-sm">—</span>;
+            }
+            return (
+                <Link
+                    to={`/customers/${customer.id}`}
+                    className="text-sm font-medium text-primary hover:underline"
+                >
+                    {customer.name}
+                </Link>
+            );
+        },
+    },
+    {
         id: 'changes',
         header: 'التعديلات',
         cell: ({ row }) => {
-            const changes = row.original.changes;
-            const keys = Object.keys(changes);
-
             return (
-                <div className="flex flex-col gap-2 max-w-xs md:max-w-md">
-                    {keys.map((key) => (
-                        <div key={key} className="flex items-center gap-2 text-sm bg-gray-50 p-2 rounded">
-                            <span className="font-semibold w-24 truncate" title={key}>
-                                {key}:
-                            </span>
-                            <span
-                                className="text-red-500 line-through truncate max-w-[100px]"
-                                title={String(changes[key].old)}
-                            >
-                                {String(changes[key].old) || 'فارغ'}
-                            </span>
-                            <ArrowLeft className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                            <span
-                                className="text-green-600 font-medium truncate max-w-[100px]"
-                                title={String(changes[key].new)}
-                            >
-                                {String(changes[key].new) || 'فارغ'}
-                            </span>
-                        </div>
-                    ))}
+                <div className="max-w-md">
+                    <AuditChangesDisplay changes={row.original.changes} compact />
                 </div>
             );
         },

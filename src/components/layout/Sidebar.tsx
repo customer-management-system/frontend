@@ -11,6 +11,7 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { useAuthStore } from '@/store/useAuthStore';
 import { UserRole } from '@/features/auth/authService';
+import { APP_NAME } from '@/lib/appConfig';
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: 'لوحة التحكم', href: '/', roles: [UserRole.ADMIN] },
@@ -28,8 +29,8 @@ export function Sidebar() {
 
     return (
         <aside className="w-64 bg-white border-l h-screen flex flex-col fixed right-0 top-0 z-50">
-            <div className="p-6 border-b flex items-center justify-center">
-                <h1 className="text-xl font-bold text-primary">SYSTEM</h1>
+            <div className="p-4 border-b flex items-center justify-center">
+                <h1 className="text-sm font-bold text-primary text-center leading-snug">{APP_NAME}</h1>
             </div>
 
             <nav className="flex-1 overflow-y-auto py-4">

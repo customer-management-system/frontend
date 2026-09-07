@@ -1,4 +1,10 @@
 import { z } from "zod";
+import {
+    optionalNonNegativeNumber,
+    requiredAmount,
+    requiredNonNegativeNumber,
+    requiredPositiveInt,
+} from "@/lib/formSchemas";
 
 export enum PaymentMethod {
     CASH = "CASH",
@@ -16,14 +22,21 @@ export enum DiscountType {
 export const orderItemSchema = z.object({
     product_id: z.number(),
     product_name: z.string(), // For display purposes
-    quantity: z.number().min(1, "Quantity must be at least 1"),
-    unit_price: z.number().min(0, "Price must be non-negative"),
-    discount_amount: z.number().optional(),
+    quantity: requiredPositiveInt("أدخل الكمية"),
+    unit_price: requiredNonNegativeNumber("أدخل السعر"),
+    discount_amount: optionalNonNegativeNumber(),
     discount_type: z.nativeEnum(DiscountType).optional(),
 });
 
 export const paymentRequestSchema = z.object({
-    amount: z.number().min(0, "Amount must be non-negative"),
+    amount: requiredAmount("أدخل المبلغ المدفوع"),
+    method: z.nativeEnum(PaymentMethod),
+    reference_number: z.string().optional(),
+    notes: z.string().optional(),
+});
+
+export const optionalPaymentFormSchema = z.object({
+    amount: optionalNonNegativeNumber(),
     method: z.nativeEnum(PaymentMethod),
     reference_number: z.string().optional(),
     notes: z.string().optional(),
@@ -32,9 +45,9 @@ export const paymentRequestSchema = z.object({
 export const createOrderSchema = z.object({
     customer_id: z.number(),
     items: z.array(orderItemSchema).min(1, "At least one item is required"),
-    discount_amount: z.number().optional(),
+    discount_amount: optionalNonNegativeNumber(),
     discount_type: z.nativeEnum(DiscountType).optional(),
-    payment: paymentRequestSchema.optional(), // Make payment optional if partial payment is allowed, or required based on business logic. Assuming required for now as per JSON.
+    payment: optionalPaymentFormSchema.optional(),
 });
 
 export type CreateOrderRequest = z.infer<typeof createOrderSchema>;
@@ -45,8 +58,8 @@ export const updateOrderItemSchema = z.object({
     id: z.number().optional(),
     product_id: z.number().optional(),
     product_name: z.string().optional(),
-    quantity: z.number().min(1, "Quantity must be at least 1"),
-    unit_price: z.number().min(0, "Price must be non-negative"),
+    quantity: requiredPositiveInt("أدخل الكمية"),
+    unit_price: requiredNonNegativeNumber("أدخل السعر"),
 }).refine((item) => Boolean(item.id || item.product_id), {
     message: "Each item must have an id or product_id",
 });

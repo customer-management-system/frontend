@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { numberInputValue, parseOptionalFloat } from "@/lib/formNumberInput";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -32,7 +33,7 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
         defaultValues: {
             name: initialData?.name || "",
             sku: initialData?.sku || "",
-            default_price: initialData?.default_price || 0,
+            default_price: initialData?.default_price ?? undefined,
             is_active: initialData?.is_active ?? true,
         },
     });
@@ -96,10 +97,9 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                                     type="number"
                                     step="0.01"
                                     min="0"
-                                    placeholder="0.00"
-                                    {...field}
-                                    value={field.value as number}
-                                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                    placeholder="أدخل السعر"
+                                    value={numberInputValue(field.value as number | undefined)}
+                                    onChange={(e) => field.onChange(parseOptionalFloat(e.target.value))}
                                 />
                             </FormControl>
                             <FormMessage />

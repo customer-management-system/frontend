@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { requiredNonNegativeNumber } from "@/lib/formSchemas";
 
 export const productSchema = z.object({
     id: z.number().optional(),
     name: z.string().min(2, { message: "الاسم يجب أن يكون حرفين على الأقل." }),
     sku: z.string().min(2, { message: "الرمز التخزيني (SKU) مطلوب." }),
-    default_price: z.coerce.number().min(0, { message: "السعر يجب أن يكون رقماً صحيحاً أو مساوياً للصفر." }),
+    default_price: requiredNonNegativeNumber("أدخل السعر الافتراضي"),
     is_active: z.boolean().default(true),
 });
 

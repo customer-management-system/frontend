@@ -53,6 +53,16 @@ export function UpdateHistoryTab() {
                         <div className="text-2xl font-bold text-orange-600">{summary.payment_updates}</div>
                     </CardContent>
                 </Card>
+                {(summary.return_updates ?? 0) > 0 && (
+                    <Card className="border-orange-100">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium text-orange-800">تعديلات المرتجعات</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-orange-600">{summary.return_updates}</div>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
 
             <div className="bg-white p-6 rounded-lg border shadow-sm flex-1 overflow-x-auto">

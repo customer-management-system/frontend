@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/popover";
 
 import { createReturnSchema, CreateReturnRequest, ReturnData } from "./schema";
+import { numberInputValue, parseOptionalFloat, parseOptionalInt } from "@/lib/formNumberInput";
 import { returnsService } from "./returnsService";
 import { ordersService } from "../orders/ordersService";
 import { customersService } from "../customers/customersService";
@@ -319,8 +320,9 @@ export function ReturnDialog({ customerId, onSuccess }: ReturnDialogProps) {
                                                             <FormControl>
                                                                 <Input
                                                                     type="number"
-                                                                    {...field}
-                                                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                                                    placeholder="الكمية"
+                                                                    value={numberInputValue(field.value)}
+                                                                    onChange={(e) => field.onChange(parseOptionalInt(e.target.value))}
                                                                 />
                                                             </FormControl>
                                                         </FormItem>
@@ -336,8 +338,9 @@ export function ReturnDialog({ customerId, onSuccess }: ReturnDialogProps) {
                                                             <FormControl>
                                                                 <Input
                                                                     type="number"
-                                                                    {...field}
-                                                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                                                    placeholder="السعر"
+                                                                    value={numberInputValue(field.value)}
+                                                                    onChange={(e) => field.onChange(parseOptionalFloat(e.target.value))}
                                                                 />
                                                             </FormControl>
                                                         </FormItem>

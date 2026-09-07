@@ -39,6 +39,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 import { updateOrderSchema, UpdateOrderRequest, Product } from "./schema";
 import { ordersService } from "./ordersService";
+import { numberInputValue, parseOptionalFloat, parseOptionalInt } from "@/lib/formNumberInput";
 
 interface ApiOrderItem {
     id: number;
@@ -251,8 +252,9 @@ export function UpdateOrderDialog({ orderId, onSuccess }: UpdateOrderDialogProps
                                                     <FormControl>
                                                         <Input
                                                             type="number"
-                                                            {...field}
-                                                            onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                                            placeholder="الكمية"
+                                                            value={numberInputValue(field.value)}
+                                                            onChange={e => field.onChange(parseOptionalInt(e.target.value))}
                                                         />
                                                     </FormControl>
                                                 </FormItem>
@@ -268,8 +270,9 @@ export function UpdateOrderDialog({ orderId, onSuccess }: UpdateOrderDialogProps
                                                     <FormControl>
                                                         <Input
                                                             type="number"
-                                                            {...field}
-                                                            onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                                                            placeholder="السعر"
+                                                            value={numberInputValue(field.value)}
+                                                            onChange={e => field.onChange(parseOptionalFloat(e.target.value))}
                                                         />
                                                     </FormControl>
                                                 </FormItem>

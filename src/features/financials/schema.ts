@@ -1,3 +1,5 @@
+import type { FormattedAuditChanges } from '@/features/customers/schema';
+
 export interface CustomerRef {
     id: number;
     name: string;
@@ -29,7 +31,20 @@ export interface OrderHistoryItem {
     balance: number;
     discount_amount: number;
     discount_type: 'percentage' | 'fixed' | null;
+    notes?: string | null;
     is_modified: boolean;
+    total_items: number;
+    items: OrderItemRef[];
+    created_by: UserRef | null;
+    created_at: string;
+}
+
+export interface ReturnHistoryItem {
+    id: number;
+    type: 'RETURN';
+    customer: CustomerRef;
+    total_amount: number;
+    notes?: string | null;
     total_items: number;
     items: OrderItemRef[];
     created_by: UserRef | null;
@@ -50,13 +65,15 @@ export interface PaymentHistoryItem {
     created_at: string;
 }
 
-export type FinancialHistoryItem = OrderHistoryItem | PaymentHistoryItem;
+export type FinancialHistoryItem = OrderHistoryItem | PaymentHistoryItem | ReturnHistoryItem;
 
 export interface FinancialSummary {
     total_orders: number;
     total_revenue: number;
     total_payments: number;
     total_collected: number;
+    total_returns?: number;
+    total_returned?: number;
 }
 
 export interface FinancialHistoryResponse {
@@ -81,13 +98,21 @@ export interface DeletedPaymentHistoryItem extends Omit<PaymentHistoryItem, 'typ
     deleted_by: UserRef | null;
 }
 
-export type DeletedHistoryItem = DeletedOrderHistoryItem | DeletedPaymentHistoryItem;
+export interface DeletedReturnHistoryItem extends Omit<ReturnHistoryItem, 'type'> {
+    type: 'RETURN';
+    deleted_at: string;
+    deleted_by: UserRef | null;
+}
+
+export type DeletedHistoryItem = DeletedOrderHistoryItem | DeletedPaymentHistoryItem | DeletedReturnHistoryItem;
 
 export interface DeletedSummary {
     deleted_orders_count: number;
     deleted_orders_total: number;
     deleted_payments_count: number;
     deleted_payments_total: number;
+    deleted_returns_count?: number;
+    deleted_returns_total?: number;
 }
 
 export interface DeletedHistoryResponse {
@@ -104,21 +129,17 @@ export interface UpdateSummary {
     total_updates: number;
     order_updates: number;
     payment_updates: number;
-}
-
-export interface UpdateChangeItem {
-    old: unknown;
-    new: unknown;
+    return_updates?: number;
 }
 
 export interface UpdateHistoryItem {
     audit_id: number;
-    entity_type: 'Order' | 'Payment';
+    entity_type: 'Order' | 'Payment' | 'Return';
     entity_id: number;
+    action?: 'UPDATE' | 'DELETE' | 'REVERSE' | 'VOID';
     description: string;
-    changes: Record<string, UpdateChangeItem>;
-    old_value: unknown;
-    new_value: unknown;
+    customer: CustomerRef | null;
+    changes: FormattedAuditChanges;
     updated_by: UserRef | null;
     updated_at: string;
 }

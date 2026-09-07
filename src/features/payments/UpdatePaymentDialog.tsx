@@ -33,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { updatePaymentSchema, UpdatePaymentRequest } from "./schema";
 import { PaymentMethod } from "../orders/schema";
 import { paymentsService } from "./paymentsService";
+import { numberInputValue, parseOptionalFloat } from "@/lib/formNumberInput";
 
 interface UpdatePaymentDialogProps {
     paymentId: number;
@@ -124,8 +125,8 @@ export function UpdatePaymentDialog({ paymentId, initialData, onSuccess }: Updat
                                         <Input
                                             type="number"
                                             placeholder="أدخل المبلغ..."
-                                            {...field}
-                                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                            value={numberInputValue(field.value)}
+                                            onChange={(e) => field.onChange(parseOptionalFloat(e.target.value))}
                                         />
                                     </FormControl>
                                     <FormMessage />

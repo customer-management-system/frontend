@@ -68,6 +68,26 @@ export function DailyHistoryTab() {
                         <div className="text-2xl font-bold text-green-600">{formatCurrency(summary.total_collected)}</div>
                     </CardContent>
                 </Card>
+                {summary.total_returns != null && summary.total_returns > 0 && (
+                    <>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">المرتجعات (العدد)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{summary.total_returns}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">قيمة المرتجعات</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-teal-600">{formatCurrency(summary.total_returned ?? 0)}</div>
+                            </CardContent>
+                        </Card>
+                    </>
+                )}
             </div>
 
             <div className="bg-white p-6 rounded-lg border shadow-sm">

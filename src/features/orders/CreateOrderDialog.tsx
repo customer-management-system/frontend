@@ -52,6 +52,7 @@ import { Invoice } from "./Invoice";
 import { PrintOverlay } from "@/components/shared/PrintOverlay";
 import { triggerPrint } from "@/lib/printManager";
 import { getApiErrorMessage } from "@/lib/getErrorMessage";
+import { numberInputValue, parseOptionalFloat, parseOptionalInt } from "@/lib/formNumberInput";
 
 interface CreateOrderDialogProps {
     customerId: number;
@@ -72,10 +73,10 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
         defaultValues: {
             customer_id: customerId,
             items: [],
-            discount_amount: 0,
+            discount_amount: undefined,
             discount_type: DiscountType.FIXED,
             payment: {
-                amount: 0,
+                amount: undefined,
                 method: PaymentMethod.CASH,
                 notes: "",
             },
@@ -128,12 +129,11 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
 
     // Calculate totals
     const items = form.watch("items");
-    const orderDiscountAmount = form.watch("discount_amount") || 0;
+    const orderDiscountAmount = form.watch("discount_amount") ?? 0;
     const orderDiscountType = form.watch("discount_type");
 
     const subtotal = items.reduce((sum, item) => {
-        const itemTotal = item.quantity * item.unit_price;
-        // Item level discount logic if needed, currently optional in schema but simplified here
+        const itemTotal = (item.quantity ?? 0) * (item.unit_price ?? 0);
         return sum + itemTotal;
     }, 0);
 
@@ -148,12 +148,6 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
     };
 
     const total = calculateTotal();
-
-    // Auto-update payment amount when total changes
-    useEffect(() => {
-        form.setValue("payment.amount", total);
-    }, [total, form, form.setValue]);
-
 
     const [createdOrder, setCreatedOrder] = useState<OrderData | null>(null);
     const [previousBalance, setPreviousBalance] = useState(0);
@@ -365,8 +359,9 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                                                 <FormControl>
                                                     <Input
                                                         type="number"
-                                                        {...field}
-                                                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                                        placeholder="الكمية"
+                                                        value={numberInputValue(field.value)}
+                                                        onChange={e => field.onChange(parseOptionalInt(e.target.value))}
                                                     />
                                                 </FormControl>
                                             </FormItem>
@@ -382,8 +377,9 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                                                 <FormControl>
                                                     <Input
                                                         type="number"
-                                                        {...field}
-                                                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                                                        placeholder="السعر"
+                                                        value={numberInputValue(field.value)}
+                                                        onChange={e => field.onChange(parseOptionalFloat(e.target.value))}
                                                     />
                                                 </FormControl>
                                             </FormItem>
@@ -420,8 +416,9 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                                                 <FormControl>
                                                     <Input
                                                         type="number"
-                                                        {...field}
-                                                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                                                        placeholder="قيمة الخصم"
+                                                        value={numberInputValue(field.value)}
+                                                        onChange={e => field.onChange(parseOptionalFloat(e.target.value))}
                                                     />
                                                 </FormControl>
                                             </FormItem>
@@ -480,8 +477,8 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                                                     <Input
                                                         type="number"
                                                         placeholder="المبلغ المدفوع"
-                                                        {...field}
-                                                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                                                        value={numberInputValue(field.value)}
+                                                        onChange={e => field.onChange(parseOptionalFloat(e.target.value))}
                                                     />
                                                 </FormControl>
                                             </FormItem>

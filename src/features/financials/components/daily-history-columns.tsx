@@ -1,10 +1,13 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { FinancialHistoryItem, OrderHistoryItem } from '../schema';
+import { FinancialHistoryItem, OrderHistoryItem, PaymentHistoryItem, ReturnHistoryItem } from '../schema';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
+import { FinancialOrderDetails, FinancialPaymentDetails, FinancialReturnDetails } from '@/components/shared/FinancialRecordDetails';
 
 const isOrder = (item: FinancialHistoryItem): item is OrderHistoryItem => item.type === 'ORDER';
+const isPayment = (item: FinancialHistoryItem): item is PaymentHistoryItem => item.type === 'PAYMENT';
+const isReturn = (item: FinancialHistoryItem): item is ReturnHistoryItem => item.type === 'RETURN';
 
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -27,16 +30,23 @@ export const dailyHistoryColumns: ColumnDef<FinancialHistoryItem>[] = [
         header: 'النوع',
         cell: ({ row }) => {
             const type = row.original.type;
+            if (type === 'ORDER') {
+                return (
+                    <Badge variant="default" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                        طلب
+                    </Badge>
+                );
+            }
+            if (type === 'RETURN') {
+                return (
+                    <Badge variant="default" className="bg-teal-100 text-teal-800 hover:bg-teal-100">
+                        مرتجع
+                    </Badge>
+                );
+            }
             return (
-                <Badge
-                    variant={type === 'ORDER' ? 'default' : 'secondary'}
-                    className={
-                        type === 'ORDER'
-                            ? 'bg-blue-100 text-blue-800 hover:bg-blue-100'
-                            : 'bg-green-100 text-green-800 hover:bg-green-100'
-                    }
-                >
-                    {type === 'ORDER' ? 'طلب' : 'دفعة'}
+                <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100">
+                    دفعة
                 </Badge>
             );
         },
@@ -50,8 +60,9 @@ export const dailyHistoryColumns: ColumnDef<FinancialHistoryItem>[] = [
         header: 'المبلغ',
         cell: ({ row }) => {
             const item = row.original;
-            const amount = isOrder(item) ? item.total_amount : item.amount;
-            return <div className="font-medium text-primary">{formatCurrency(amount)}</div>;
+            const amount = isPayment(item) ? item.amount : item.total_amount;
+            const tone = isReturn(item) ? 'text-teal-600' : isPayment(item) ? 'text-green-600' : 'text-primary';
+            return <div className={`font-medium ${tone}`}>{formatCurrency(amount)}</div>;
         },
     },
     {
@@ -60,9 +71,40 @@ export const dailyHistoryColumns: ColumnDef<FinancialHistoryItem>[] = [
         cell: ({ row }) => {
             const item = row.original;
             if (isOrder(item)) {
-                return <span className="text-sm text-gray-600">عدد المنتجات: {item.total_items}</span>;
+                return (
+                    <FinancialOrderDetails
+                        items={item.items}
+                        notes={item.notes}
+                        totalItems={item.total_items}
+                        discountAmount={item.discount_amount}
+                        discountType={item.discount_type}
+                        paidAmount={item.paid_amount}
+                        balance={item.balance}
+                        createdBy={item.created_by}
+                        isModified={item.is_modified}
+                    />
+                );
             }
-            return <span className="text-sm text-gray-600">طريقة الدفع: {item.method}</span>;
+            if (isReturn(item)) {
+                return (
+                    <FinancialReturnDetails
+                        items={item.items}
+                        notes={item.notes}
+                        totalItems={item.total_items}
+                        createdBy={item.created_by}
+                    />
+                );
+            }
+            return (
+                <FinancialPaymentDetails
+                    method={item.method}
+                    notes={item.notes}
+                    referenceNumber={item.reference_number}
+                    linkedOrderId={item.linked_order_id}
+                    status={item.status}
+                    createdBy={item.created_by}
+                />
+            );
         },
     },
     {

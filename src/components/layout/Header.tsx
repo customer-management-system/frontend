@@ -2,6 +2,8 @@ import { Bell, Search, User } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
 
+import { APP_NAME } from '@/lib/appConfig';
+
 const ROUTE_TITLES: Record<string, string> = {
     '/': 'لوحة التحكم',
     '/categories': 'الفئات',
@@ -15,7 +17,7 @@ function getPageTitle(pathname: string): string {
     if (pathname.startsWith('/customers/')) {
         return 'تفاصيل العميل';
     }
-    return ROUTE_TITLES[pathname] ?? 'نظام إدارة العملاء';
+    return ROUTE_TITLES[pathname] ?? APP_NAME;
 }
 
 export function Header() {
