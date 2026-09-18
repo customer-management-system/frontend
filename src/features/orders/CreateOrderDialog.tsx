@@ -43,7 +43,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-import { createOrderSchema, PaymentMethod, DiscountType, Product, CreateOrderRequest, OrderData } from "./schema";
+import { createOrderSchema, PaymentMethod, DiscountType, Product, CreateOrderRequest, OrderData, OrderItemRequest } from "./schema";
 import { ordersService } from "./ordersService";
 import { customersService } from "../customers/customersService";
 import { PricingHistoryItem } from "../customers/schema";
@@ -174,29 +174,14 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
         }
     };
 
-    const handleAddProduct = (product: Product | PricingHistoryItem, priceOverride?: number) => {
-        // If it's a Product (has default_price), use logic to find history price if not overridden
-        let unitPrice = priceOverride;
-
-        if (unitPrice === undefined) {
-            if ('default_price' in product) {
-                const historyItem = pricingHistory.find(item => item.product_id === product.id);
-                unitPrice = historyItem ? historyItem.last_price : product.default_price;
-            } else {
-                // It's a PricingHistoryItem, use its last_price
-                unitPrice = product.last_price;
-            }
-        }
-
+    const handleAddProduct = (product: Product | PricingHistoryItem) => {
         const productId = 'id' in product ? product.id : product.product_id;
         const productName = 'name' in product ? product.name : product.product_name;
 
         append({
             product_id: productId,
             product_name: productName,
-            quantity: 1,
-            unit_price: unitPrice,
-        });
+        } as OrderItemRequest);
         setProductOpen(false);
     };
 
@@ -364,6 +349,7 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                                                         onChange={e => field.onChange(parseOptionalInt(e.target.value))}
                                                     />
                                                 </FormControl>
+                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
@@ -382,6 +368,7 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                                                         onChange={e => field.onChange(parseOptionalFloat(e.target.value))}
                                                     />
                                                 </FormControl>
+                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
@@ -508,8 +495,8 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                                         <div className="font-semibold mb-1 text-gray-700">المنتجات:</div>
                                         {items.map((item, idx) => (
                                             <div key={idx} className="flex justify-between items-center text-muted-foreground text-xs">
-                                                <span>{item.product_name} <span className="text-gray-400 mx-1">x{item.quantity}</span></span>
-                                                <span className="font-medium">{(item.quantity * item.unit_price).toFixed(2)} <span className="text-[10px]">جنية</span></span>
+                                                <span>{item.product_name} <span className="text-gray-400 mx-1">x{item.quantity ?? '-'}</span></span>
+                                                <span className="font-medium">{((item.quantity ?? 0) * (item.unit_price ?? 0)).toFixed(2)} <span className="text-[10px]">جنية</span></span>
                                             </div>
                                         ))}
                                     </div>

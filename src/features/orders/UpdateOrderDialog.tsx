@@ -142,9 +142,7 @@ export function UpdateOrderDialog({ orderId, onSuccess }: UpdateOrderDialogProps
         append({
             product_id: product.id,
             product_name: product.name,
-            quantity: 1,
-            unit_price: product.default_price,
-        });
+        } as UpdateOrderRequest['items'][number]);
         setProductOpen(false);
     };
 
@@ -257,6 +255,7 @@ export function UpdateOrderDialog({ orderId, onSuccess }: UpdateOrderDialogProps
                                                             onChange={e => field.onChange(parseOptionalInt(e.target.value))}
                                                         />
                                                     </FormControl>
+                                                    <FormMessage />
                                                 </FormItem>
                                             )}
                                         />
@@ -275,6 +274,7 @@ export function UpdateOrderDialog({ orderId, onSuccess }: UpdateOrderDialogProps
                                                             onChange={e => field.onChange(parseOptionalFloat(e.target.value))}
                                                         />
                                                     </FormControl>
+                                                    <FormMessage />
                                                 </FormItem>
                                             )}
                                         />
