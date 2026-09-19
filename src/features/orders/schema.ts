@@ -3,7 +3,7 @@ import {
     optionalNonNegativeNumber,
     requiredAmount,
     requiredNonNegativeNumber,
-    requiredPositiveInt,
+    requiredPositiveQuantity,
 } from "@/lib/formSchemas";
 
 export enum PaymentMethod {
@@ -22,7 +22,7 @@ export enum DiscountType {
 export const orderItemSchema = z.object({
     product_id: z.number(),
     product_name: z.string(), // For display purposes
-    quantity: requiredPositiveInt("أدخل الكمية"),
+    quantity: requiredPositiveQuantity("أدخل الكمية"),
     unit_price: requiredNonNegativeNumber("أدخل السعر"),
     discount_amount: optionalNonNegativeNumber(),
     discount_type: z.nativeEnum(DiscountType).optional(),
@@ -58,7 +58,7 @@ export const updateOrderItemSchema = z.object({
     id: z.number().optional(),
     product_id: z.number().optional(),
     product_name: z.string().optional(),
-    quantity: requiredPositiveInt("أدخل الكمية"),
+    quantity: requiredPositiveQuantity("أدخل الكمية"),
     unit_price: requiredNonNegativeNumber("أدخل السعر"),
 }).refine((item) => Boolean(item.id || item.product_id), {
     message: "Each item must have an id or product_id",

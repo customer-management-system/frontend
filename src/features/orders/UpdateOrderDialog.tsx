@@ -39,7 +39,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 import { updateOrderSchema, UpdateOrderRequest, Product } from "./schema";
 import { ordersService } from "./ordersService";
-import { numberInputValue, parseOptionalFloat, parseOptionalInt } from "@/lib/formNumberInput";
+import { numberInputValue, parseOptionalFloat } from "@/lib/formNumberInput";
 
 interface ApiOrderItem {
     id: number;
@@ -250,9 +250,11 @@ export function UpdateOrderDialog({ orderId, onSuccess }: UpdateOrderDialogProps
                                                     <FormControl>
                                                         <Input
                                                             type="number"
+                                                            step="0.01"
+                                                            min="0.01"
                                                             placeholder="الكمية"
                                                             value={numberInputValue(field.value)}
-                                                            onChange={e => field.onChange(parseOptionalInt(e.target.value))}
+                                                            onChange={e => field.onChange(parseOptionalFloat(e.target.value))}
                                                         />
                                                     </FormControl>
                                                     <FormMessage />

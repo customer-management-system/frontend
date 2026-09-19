@@ -52,7 +52,7 @@ import { Invoice } from "./Invoice";
 import { PrintOverlay } from "@/components/shared/PrintOverlay";
 import { triggerPrint } from "@/lib/printManager";
 import { getApiErrorMessage } from "@/lib/getErrorMessage";
-import { numberInputValue, parseOptionalFloat, parseOptionalInt } from "@/lib/formNumberInput";
+import { numberInputValue, parseOptionalFloat } from "@/lib/formNumberInput";
 
 interface CreateOrderDialogProps {
     customerId: number;
@@ -344,9 +344,11 @@ export function CreateOrderDialog({ customerId, onSuccess }: CreateOrderDialogPr
                                                 <FormControl>
                                                     <Input
                                                         type="number"
+                                                        step="0.01"
+                                                        min="0.01"
                                                         placeholder="الكمية"
                                                         value={numberInputValue(field.value)}
-                                                        onChange={e => field.onChange(parseOptionalInt(e.target.value))}
+                                                        onChange={e => field.onChange(parseOptionalFloat(e.target.value))}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />

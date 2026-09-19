@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { requiredNonNegativeNumber, requiredPositiveInt } from "@/lib/formSchemas";
+import { requiredNonNegativeNumber, requiredPositiveQuantity } from "@/lib/formSchemas";
 
 export const returnItemSchema = z.object({
     product_id: z.number(),
     product_name: z.string(),
-    quantity: requiredPositiveInt("أدخل الكمية"),
+    quantity: requiredPositiveQuantity("أدخل الكمية"),
     unit_price: requiredNonNegativeNumber("أدخل السعر"),
 });
 

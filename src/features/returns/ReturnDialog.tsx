@@ -37,8 +37,8 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 
-import { createReturnSchema, CreateReturnRequest, ReturnData } from "./schema";
-import { numberInputValue, parseOptionalFloat, parseOptionalInt } from "@/lib/formNumberInput";
+import { createReturnSchema, CreateReturnRequest, ReturnData, ReturnItemRequest } from "./schema";
+import { numberInputValue, parseOptionalFloat } from "@/lib/formNumberInput";
 import { returnsService } from "./returnsService";
 import { ordersService } from "../orders/ordersService";
 import { customersService } from "../customers/customersService";
@@ -119,7 +119,7 @@ export function ReturnDialog({ customerId, onSuccess }: ReturnDialogProps) {
     }, [customerId, open]);
 
     const items = form.watch("items");
-    const total = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+    const total = items.reduce((sum, item) => sum + (item.quantity ?? 0) * (item.unit_price ?? 0), 0);
 
     const handleAddProduct = (product: Product | PricingHistoryItem, priceOverride?: number) => {
         let unitPrice = priceOverride;
@@ -139,9 +139,8 @@ export function ReturnDialog({ customerId, onSuccess }: ReturnDialogProps) {
         append({
             product_id: productId,
             product_name: productName,
-            quantity: 1,
             unit_price: unitPrice,
-        });
+        } as ReturnItemRequest);
         setProductOpen(false);
     };
 
@@ -320,9 +319,11 @@ export function ReturnDialog({ customerId, onSuccess }: ReturnDialogProps) {
                                                             <FormControl>
                                                                 <Input
                                                                     type="number"
+                                                                    step="0.01"
+                                                                    min="0.01"
                                                                     placeholder="الكمية"
                                                                     value={numberInputValue(field.value)}
-                                                                    onChange={(e) => field.onChange(parseOptionalInt(e.target.value))}
+                                                                    onChange={(e) => field.onChange(parseOptionalFloat(e.target.value))}
                                                                 />
                                                             </FormControl>
                                                         </FormItem>
