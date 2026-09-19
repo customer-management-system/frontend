@@ -10,7 +10,10 @@ interface FinancialsState {
     // Daily History
     dailyData: FinancialHistoryResponse['data'] | null;
     isLoadingDaily: boolean;
-    fetchDailyHistory: () => Promise<void>;
+    dailySearch: string;
+    dailyPage: number;
+    setDailySearch: (query: string) => void;
+    fetchDailyHistory: (page?: number, search?: string) => Promise<void>;
 
     // Deleted History
     deletedData: DeletedHistoryResponse['data'] | null;
@@ -25,14 +28,23 @@ interface FinancialsState {
 
 export const useFinancialsStore = create<FinancialsState>((set, get) => ({
     date: format(new Date(), 'yyyy-MM-dd'),
-    setDate: (date: string) => set({ date }),
+    setDate: (date: string) => set({ date, dailyPage: 1 }),
 
     dailyData: null,
     isLoadingDaily: false,
-    fetchDailyHistory: async () => {
+    dailySearch: '',
+    dailyPage: 1,
+    setDailySearch: (query) => {
+        set({ dailySearch: query, dailyPage: 1 });
+        get().fetchDailyHistory(1, query);
+    },
+    fetchDailyHistory: async (page, search) => {
+        const { date, dailySearch, dailyPage } = get();
+        const currentPage = page ?? dailyPage;
+        const currentSearch = search !== undefined ? search : dailySearch;
         try {
-            set({ isLoadingDaily: true });
-            const response = await financialsService.getDailyHistory(get().date);
+            set({ isLoadingDaily: true, dailyPage: currentPage });
+            const response = await financialsService.getDailyHistory(date, currentPage, 10, currentSearch);
             set({ dailyData: response.data, isLoadingDaily: false });
         } catch (error) {
             console.error('Error fetching daily history:', error);

@@ -56,6 +56,14 @@ export const dailyHistoryColumns: ColumnDef<FinancialHistoryItem>[] = [
         header: 'العميل',
     },
     {
+        id: 'username',
+        accessorFn: (item) => item.created_by?.username ?? '',
+        header: 'المستخدم',
+        cell: ({ row }) => (
+            <span className="text-sm">{row.original.created_by?.username || '—'}</span>
+        ),
+    },
+    {
         id: 'amount',
         header: 'المبلغ',
         cell: ({ row }) => {

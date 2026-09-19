@@ -20,6 +20,7 @@ const sidebarItems = [
     { icon: Users, label: 'العملاء', href: '/customers', roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF] },
     { icon: ScrollText, label: 'سجل التدقيق', href: '/audit-trail', roles: [UserRole.ADMIN, UserRole.MANAGER] },
     { icon: DollarSign, label: 'الماليات', href: '/financials', roles: [UserRole.ADMIN] },
+    { icon: DollarSign, label: 'اليوميات', href: '/financials', roles: [UserRole.MANAGER, UserRole.STAFF] },
 ];
 
 export function Sidebar() {
@@ -43,7 +44,7 @@ export function Sidebar() {
 
                         const isActive = location.pathname === item.href;
                         return (
-                            <li key={item.href}>
+                            <li key={`${item.href}-${item.label}`}>
                                 <Link
                                     to={item.href}
                                     className={cn(

@@ -82,6 +82,12 @@ export interface FinancialHistoryResponse {
         date: string;
         summary: FinancialSummary;
         history: FinancialHistoryItem[];
+        pagination: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
     };
 }
 

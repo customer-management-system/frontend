@@ -42,9 +42,12 @@ function App() {
               <Route path="audit-trail" element={<AuditTrailPage />} />
             </Route>
 
+            <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF]} />}>
+              <Route path="financials" element={<FinancialsPage />} />
+            </Route>
+
             <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
               <Route path="users" element={<UsersPage />} />
-              <Route path="financials" element={<FinancialsPage />} />
               <Route path="register-user" element={<Navigate to="/users" replace />} />
             </Route>
           </Route>

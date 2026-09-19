@@ -1,6 +1,7 @@
 import { Bell, Search, User } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
+import { UserRole } from '@/features/auth/authService';
 
 import { APP_NAME } from '@/lib/appConfig';
 
@@ -11,11 +12,15 @@ const ROUTE_TITLES: Record<string, string> = {
     '/customers': 'العملاء',
     '/users': 'إدارة المستخدمين',
     '/financials': 'الماليات',
+    '/audit-trail': 'سجل التدقيق',
 };
 
-function getPageTitle(pathname: string): string {
+function getPageTitle(pathname: string, role?: string): string {
     if (pathname.startsWith('/customers/')) {
         return 'تفاصيل العميل';
+    }
+    if (pathname === '/financials' && role && role !== UserRole.ADMIN) {
+        return 'اليوميات';
     }
     return ROUTE_TITLES[pathname] ?? APP_NAME;
 }
@@ -23,7 +28,7 @@ function getPageTitle(pathname: string): string {
 export function Header() {
     const { user } = useAuthStore();
     const location = useLocation();
-    const pageTitle = getPageTitle(location.pathname);
+    const pageTitle = getPageTitle(location.pathname, user?.role);
 
     return (
         <header className="h-16 bg-white border-b flex items-center justify-between px-6 sticky top-0 z-40">

@@ -12,13 +12,17 @@ export default function FinancialsPage() {
     const { date, setDate } = useFinancialsStore();
     const { user } = useAuthStore();
     const isAdmin = user?.role === UserRole.ADMIN;
+    const pageTitle = isAdmin ? 'الماليات' : 'اليوميات';
+    const pageSubtitle = isAdmin
+        ? 'إدارة وعرض السجلات المالية اليومية'
+        : 'عرض كل العمليات اليومية: طلبات، دفعات، ومرتجعات';
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">الماليات</h1>
-                    <p className="text-muted-foreground">إدارة وعرض السجلات المالية اليومية</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">{pageTitle}</h1>
+                    <p className="text-muted-foreground">{pageSubtitle}</p>
                 </div>
 
                 <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm w-full sm:w-auto">

@@ -2,9 +2,14 @@ import api from '@/lib/axios';
 import { FinancialHistoryResponse, DeletedHistoryResponse, UpdateHistoryResponse } from './schema';
 
 export const financialsService = {
-    getDailyHistory: async (date: string): Promise<FinancialHistoryResponse> => {
+    getDailyHistory: async (
+        date: string,
+        page = 1,
+        limit = 10,
+        search = '',
+    ): Promise<FinancialHistoryResponse> => {
         const response = await api.get<FinancialHistoryResponse>('/daily-history/financial', {
-            params: { date }
+            params: { date, page, limit, search },
         });
         return response.data;
     },
