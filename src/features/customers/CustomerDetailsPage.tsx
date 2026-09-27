@@ -71,7 +71,10 @@ export default function CustomerDetailsPage() {
             const customerId = parseInt(id);
             fetchCustomerDetails(customerId);
             fetchFinancialHistory(customerId);
-            fetchDeletedHistory(customerId);
+            if (user?.role === UserRole.ADMIN) {
+                fetchDeletedHistory(customerId);
+                fetchUpdateHistory(customerId);
+            }
         }
     };
 
@@ -176,10 +179,12 @@ export default function CustomerDetailsPage() {
             const customerId = parseInt(id);
             fetchCustomerDetails(customerId);
             fetchFinancialHistory(customerId);
-            fetchDeletedHistory(customerId);
-            fetchUpdateHistory(customerId);
+            if (user?.role === UserRole.ADMIN) {
+                fetchDeletedHistory(customerId);
+                fetchUpdateHistory(customerId);
+            }
         }
-    }, [id, fetchCustomerDetails, fetchFinancialHistory, fetchDeletedHistory, fetchUpdateHistory]);
+    }, [id, user?.role, fetchCustomerDetails, fetchFinancialHistory, fetchDeletedHistory, fetchUpdateHistory]);
 
     const handleFilter = () => {
         if (id) {
@@ -481,24 +486,12 @@ export default function CustomerDetailsPage() {
                                                                                 reference_number: "", // Assuming not returned directly in history without a fetch
                                                                                 notes: record.description
                                                                             }}
-                                                                            onSuccess={() => {
-                                                                                if (id) {
-                                                                                    fetchCustomerDetails(parseInt(id));
-                                                                                    fetchFinancialHistory(parseInt(id));
-                                                                                    fetchDeletedHistory(parseInt(id));
-                                                                                }
-                                                                            }}
+                                                                            onSuccess={refreshCustomerData}
                                                                         />
                                                                         <ReversePaymentDialog
                                                                             paymentId={record.referenceId}
                                                                             amount={record.amount}
-                                                                            onSuccess={() => {
-                                                                                if (id) {
-                                                                                    fetchCustomerDetails(parseInt(id));
-                                                                                    fetchFinancialHistory(parseInt(id));
-                                                                                    fetchDeletedHistory(parseInt(id));
-                                                                                }
-                                                                            }}
+                                                                            onSuccess={refreshCustomerData}
                                                                         />
                                                                         <DropdownMenuItem
                                                                             className="text-red-600 focus:text-red-600 cursor-pointer"
@@ -546,13 +539,7 @@ export default function CustomerDetailsPage() {
                                                                         </DropdownMenuItem>
                                                                         <UpdateOrderDialog
                                                                             orderId={record.referenceId}
-                                                                            onSuccess={() => {
-                                                                                if (id) {
-                                                                                    fetchCustomerDetails(parseInt(id));
-                                                                                    fetchFinancialHistory(parseInt(id));
-                                                                                    fetchDeletedHistory(parseInt(id));
-                                                                                }
-                                                                            }}
+                                                                            onSuccess={refreshCustomerData}
                                                                         />
                                                                         <DropdownMenuItem
                                                                             className="text-red-600 focus:text-red-600 cursor-pointer"

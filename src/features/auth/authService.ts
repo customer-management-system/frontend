@@ -46,8 +46,11 @@ export const authService = {
     },
 
     logout: async (): Promise<void> => {
+        const refreshToken = localStorage.getItem('refreshToken');
         try {
-            await api.post('/auth/logout');
+            if (refreshToken) {
+                await api.post('/auth/logout', { refreshToken });
+            }
         } catch {
             // Proceed with local cleanup even if server logout fails
         } finally {
