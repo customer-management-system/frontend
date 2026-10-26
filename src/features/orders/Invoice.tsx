@@ -1,6 +1,17 @@
 import { OrderData } from "./schema";
 import { format } from "date-fns";
 
+/** Full amount tendered on this order (invoice display), not allocated slice. */
+export function getInvoiceDisplayPaidAmount(order: OrderData): number {
+    if (order.payments && order.payments.length > 0) {
+        return order.payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    }
+    if (order.payment?.amount != null && Number(order.payment.amount) > 0) {
+        return Number(order.payment.amount);
+    }
+    return Number(order.paid_amount) || 0;
+}
+
 interface InvoiceProps {
     order: OrderData;
     previousBalance: number;
@@ -11,7 +22,7 @@ interface InvoiceProps {
 export function Invoice({ order, customerName }: InvoiceProps) {
     const totalAmount = Number(order.total_amount) || 0;
     const discountAmount = Number(order.discount_amount) || 0;
-    const paidAmount = Number(order.paid_amount) || 0;
+    const paidAmount = getInvoiceDisplayPaidAmount(order);
     const balance = Number(order.balance) || 0;
     const currentTotalBalance = Number(order.currentTotalBalance) || 0;
 

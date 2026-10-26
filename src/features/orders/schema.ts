@@ -86,6 +86,14 @@ export interface OrderPayment {
     method: PaymentMethod;
 }
 
+/** Payments linked to an order (e.g. from GET /orders/:id). */
+export interface OrderPaymentRecord {
+    id: number;
+    amount: string | number;
+    payment_method?: string;
+    created_at?: string;
+}
+
 export interface OrderInvoice {
     id: number;
     number: string;
@@ -104,6 +112,7 @@ export interface OrderData {
     discount_type?: string;
     items: OrderItem[];
     payment?: OrderPayment;
+    payments?: OrderPaymentRecord[];
     invoice?: OrderInvoice;
     currentTotalBalance?: number;
     created_at: string;
